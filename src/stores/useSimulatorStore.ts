@@ -1,18 +1,30 @@
 import { create } from "zustand";
 import { nanoid } from "nanoid";
 import { RoomCategory, Furniture } from "@/types/room";
-import { CameraView, InteractiveMode } from "@/types/simulator";
+import { PlacedFurniture } from "@/types/interactive";
+import { CameraView, InteractiveMode } from "@/types/interactive";
 import { ROOM_CATEGORIES } from "@/constants";
+import { Coordinate } from "@/types/common";
 
 type SimulatorState = {
   roomCategories: RoomCategory[];
 
   scene: {
-    furniture: Furniture[];
+    furniture: PlacedFurniture[];
   };
 
-  addFurnitureToScene: (furniture: Omit<Furniture, "id">) => void;
+  selectedFurniture: PlacedFurniture | null;
+  setSelectedFurniture: (furniture: PlacedFurniture | null) => void;
+
+  addFurnitureToScene: (
+    furniture: Omit<PlacedFurniture, "id">,
+    position?: Coordinate
+  ) => void;
   removeFurnitureFromScene: (furnitureId: string) => void;
+  updatePlacedFurnitureById: (
+    furnitureId: string,
+    updates: Partial<PlacedFurniture>
+  ) => void;
 
   cameraView: CameraView;
   setCameraView: (view: CameraView) => void;
@@ -32,7 +44,10 @@ export const useSimulatorStore = create<SimulatorState>((set) => ({
     furniture: [],
   },
 
-  addFurnitureToScene: (furniture) =>
+  selectedFurniture: null,
+  setSelectedFurniture: (furniture) => set({ selectedFurniture: furniture }),
+
+  addFurnitureToScene: (furniture, position = [0, 0, 0]) =>
     set((state) => ({
       scene: {
         ...state.scene,
@@ -51,6 +66,19 @@ export const useSimulatorStore = create<SimulatorState>((set) => ({
       scene: {
         ...state.scene,
         furniture: state.scene.furniture.filter((f) => f.id !== furnitureId),
+      },
+    })),
+
+  updatePlacedFurnitureById: (
+    furnitureId: string,
+    updates: Partial<PlacedFurniture>
+  ) =>
+    set((state) => ({
+      scene: {
+        ...state.scene,
+        furniture: state.scene.furniture.map((f) =>
+          f.id === furnitureId ? { ...f, ...updates } : f
+        ),
       },
     })),
 

@@ -1,12 +1,14 @@
+import { Dimension } from "./common";
+
 export type Furniture = {
   id: string;
+  type?: string;
   name: string;
   description?: string;
   categoryId: string;
   modelPath: string;
-  position: [number, number, number];
-  rotation: [number, number, number];
-  scale: [number, number, number];
+  dimension: Dimension;
+  color?: string;
 };
 
 export type RoomCategory = {

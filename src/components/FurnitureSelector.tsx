@@ -10,8 +10,11 @@ import { ChevronLeftIcon, HousePlusIcon, X, XIcon } from "lucide-react";
 
 import { useSimulatorStore } from "@/stores/useSimulatorStore";
 import { RoomCategory } from "@/types/room";
+import { PlacedFurniture } from "@/types/interactive";
+import { Furniture } from "@/types/room";
 
 import { Button } from "./ui/button";
+import { isFurnitureValidPosition } from "@/utils/validator";
 
 const FurnitureSelector = () => {
   const [selectedCategory, setSelectedCategory] = useState<RoomCategory | null>(
@@ -19,12 +22,62 @@ const FurnitureSelector = () => {
   );
   const [expand, setExpand] = useState<boolean>(true);
 
-  const { roomCategories, addFurnitureToScene } = useSimulatorStore();
+  const {
+    roomCategories,
+    addFurnitureToScene,
+    removeFurnitureFromScene,
+    scene,
+  } = useSimulatorStore();
+
+  const placedFurnitureList = scene.furniture;
+
+  const handleAddFurnitureToScene = (furniture: Furniture) => {
+    const placeFurniture: PlacedFurniture = {
+      ...furniture,
+      position: [0, 0, 0],
+      rotation: [0, 0, 0],
+      scale: [1, 1, 1],
+    };
+    // check collision
+    if (
+      isFurnitureValidPosition(
+        placeFurniture.position,
+        placeFurniture,
+        placedFurnitureList
+      )
+    ) {
+      addFurnitureToScene(placeFurniture);
+    } else {
+      // find new position because collision occurs
+      let validPositionFound = false;
+      for (let x = -5; x <= 5 && !validPositionFound; x += 0.5) {
+        for (let z = -5; z <= 5 && !validPositionFound; z += 0.5) {
+          const testPosition: [number, number, number] = [x, 0, z];
+          if (
+            isFurnitureValidPosition(
+              testPosition,
+              placeFurniture,
+              placedFurnitureList
+            )
+          ) {
+            const placedItem = { ...placeFurniture, position: testPosition };
+            addFurnitureToScene(placedItem);
+            validPositionFound = true;
+          }
+        }
+      }
+      // cannot find any space
+      if (!validPositionFound) {
+        // TODO: add notification
+        console.log("cannot find any space");
+      }
+    }
+  };
 
   return (
     <aside
       className={cn(
-        "relative transition-all shadow-xs md:h-[calc(100svh-64px)] h-[calc(100svh-32px)] rounded-xl bg-white border md:px-3 px-2 py-8",
+        "relative transition-all flex shadow-xs md:h-[calc(100svh-64px)] h-[calc(100svh-32px)] rounded-xl bg-white border py-8",
         expand
           ? "w-1/3 max-w-[240px] border-gray-200"
           : "w-5 max-w-[20px] border-transparent"
@@ -45,19 +98,27 @@ const FurnitureSelector = () => {
         initial={{ opacity: 0 }}
         animate={expand ? { opacity: 100 } : { opacity: 0 }}
         transition={{ duration: 0.3, delay: 0.2 }}
-        className={cn(expand ? "w-full" : "w-0 invisible")}
+        className={cn(
+          "overflow-auto flex shrink-0",
+          expand ? "w-full" : "w-0 invisible"
+        )}
       >
         {/* Browse furniture by room category */}
         <section
-          className={cn("flex flex-col gap-3", selectedCategory && "hidden")}
+          className={cn(
+            "flex flex-col gap-3 shrink-0 w-full",
+            selectedCategory && "hidden"
+          )}
         >
-          <h4 className="font-semibold">Browse furniture by room</h4>
-          <ul className="mt-2 flex flex-col gap-2 grow overflow-y-auto">
+          <h4 className="font-semibold md:px-3 px-2">
+            Browse furniture by room
+          </h4>
+          <ul className="mt-2 flex flex-col gap-2 grow overflow-y-auto md:px-3 px-2">
             {roomCategories.map((category) => {
               return (
                 <li
                   key={category.id}
-                  className="relative group cursor-pointer h-40 overflow-hidden rounded-lg"
+                  className="relative group shrink-0 cursor-pointer h-40 overflow-hidden rounded-lg"
                   onClick={() => setSelectedCategory(category)}
                 >
                   {category.imageUrl && (
@@ -81,7 +142,7 @@ const FurnitureSelector = () => {
         {/* Furniture list by category id */}
         {selectedCategory && (
           <section className="flex flex-col gap-3">
-            <header className="flex flex-col gap-1">
+            <header className="flex flex-col gap-1 md:px-3 px-2">
               <Button
                 variant={`link`}
                 onClick={() => setSelectedCategory(null)}
@@ -93,30 +154,43 @@ const FurnitureSelector = () => {
                 {selectedCategory.name} furniture
               </h4>
             </header>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {selectedCategory.furniture.map((furniture) => {
-                return (
-                  <AnimatePresence key={furniture.id} mode="wait">
-                    <motion.button
-                      type="button"
-                      key={furniture.id}
-                      initial={{ y: 10, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: -10, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="rounded flex flex-col border border-gray-300 hover:border-primary-600 aspect-square overflow-hidden p-1 hover:ring-4 ring-primary-600"
-                    >
-                      {/* Image */}
-                      <div className="grow"></div>
-                      {/* Name */}
-                      <span className="text-sm font-medium">
-                        {furniture.name}
-                      </span>
-                    </motion.button>
-                  </AnimatePresence>
-                );
-              })}
-            </div>
+            {/* Furniture */}
+            <section className="grow overflow-auto">
+              <div className="flex flex-wrap gap-3 md:p-3 p-2">
+                {selectedCategory.furniture.map((furniture) => {
+                  const isSelected = placedFurnitureList.some(
+                    (f) => f.id === furniture.id
+                  );
+                  return (
+                    <AnimatePresence key={furniture.id} mode="wait">
+                      <motion.button
+                        type="button"
+                        key={furniture.id}
+                        initial={{ y: 10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: -10, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="rounded cursor-pointer h-[100px] w-[100px] flex flex-col border border-gray-300 hover:border-primary-600 overflow-hidden p-1 hover:ring-4 ring-primary-600"
+                        onClick={() => {
+                          if (isSelected) {
+                            removeFurnitureFromScene(furniture.id);
+                            return;
+                          }
+                          handleAddFurnitureToScene(furniture);
+                        }}
+                      >
+                        {/* Image */}
+                        <div className="grow"></div>
+                        {/* Name */}
+                        <span className="text-sm font-medium">
+                          {furniture.name}
+                        </span>
+                      </motion.button>
+                    </AnimatePresence>
+                  );
+                })}
+              </div>
+            </section>
           </section>
         )}
       </motion.div>
