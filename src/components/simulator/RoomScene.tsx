@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { Suspense, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import {
   OrbitControls,
@@ -18,7 +18,7 @@ import RoomSimulator from "@/components/simulator/RoomSimulator";
 import { FurnitureModel } from "../3d/FunitureModel";
 import { isFurnitureValidPosition } from "@/utils/validator";
 
-const Scene = () => {
+const RoomScene = () => {
   const cameraRef = useRef<ThreeCamera>(null);
   const controlsRef = useRef<any>(null);
 
@@ -26,12 +26,12 @@ const Scene = () => {
     cameraView,
     scene,
     updatePlacedFurnitureById,
-    selectedFurniture,
-    setSelectedFurniture,
+    selectedFurnitureId,
+    setSelectedFurnitureId,
   } = useSimulatorStore();
 
   const handleSelectPlacedFurniture = (furniture: PlacedFurniture) => {
-    setSelectedFurniture(furniture);
+    setSelectedFurnitureId(furniture.id);
   };
 
   const handleMovePlacedFurniture = (
@@ -44,21 +44,24 @@ const Scene = () => {
     }
   };
 
-  const handleDeletedPlacedFurniture = () => {
-    setSelectedFurniture(null);
+  const handlePointerMissed = (event: MouseEvent) => {
+    const target = event.target as HTMLElement;
+    if (!target?.closest?.(".object-action")) {
+      setSelectedFurnitureId("");
+    }
   };
 
-  const isEnableOrbitControls = !selectedFurniture;
+  const isEnableOrbitControls = !selectedFurnitureId;
 
   return (
-    <Canvas onPointerMissed={() => setSelectedFurniture(null)}>
+    <Canvas onPointerMissed={handlePointerMissed}>
       <PerspectiveCamera
         ref={cameraRef}
         makeDefault
         fov={75}
         near={0.1}
         far={1000}
-        position={[8, 8, 8]}
+        position={[5, 8, 12]}
       />
       <OrbitControls
         ref={controlsRef}
@@ -70,11 +73,22 @@ const Scene = () => {
         maxPolarAngle={Math.PI / 2}
       />
 
+      {/* Bulb light above the room */}
+      {/* <pointLight
+        position={[0, 5, 0]}
+        intensity={2}
+        color="#ffffff"
+        distance={15}
+        decay={2}
+        castShadow
+      /> */}
+
       {/* Light */}
-      <ambientLight intensity={0.6} />
+      <ambientLight intensity={1.2} color="#ffffff" />
       <directionalLight
         position={[10, 10, 5]}
-        intensity={1}
+        intensity={1.2}
+        color="#fff"
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
@@ -84,9 +98,10 @@ const Scene = () => {
         shadow-camera-top={10}
         shadow-camera-bottom={-10}
       />
-      <pointLight position={[-10, 10, -10]} intensity={0.5} />
-
-      <RoomSimulator />
+      <pointLight position={[-10, 10, -10]} intensity={0.5} color="#ffffff" />
+      <Suspense fallback={null}>
+        <RoomSimulator />
+      </Suspense>
 
       {scene.furniture.map((furniture) => {
         return (
@@ -95,8 +110,7 @@ const Scene = () => {
             furniture={furniture}
             onSelect={handleSelectPlacedFurniture}
             onMove={handleMovePlacedFurniture}
-            onDelete={handleDeletedPlacedFurniture}
-            isSelected={selectedFurniture?.id === furniture.id}
+            isSelected={selectedFurnitureId === furniture.id}
           />
         );
       })}
@@ -104,4 +118,4 @@ const Scene = () => {
   );
 };
 
-export default Scene;
+export default RoomScene;

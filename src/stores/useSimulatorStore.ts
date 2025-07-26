@@ -13,8 +13,8 @@ type SimulatorState = {
     furniture: PlacedFurniture[];
   };
 
-  selectedFurniture: PlacedFurniture | null;
-  setSelectedFurniture: (furniture: PlacedFurniture | null) => void;
+  selectedFurnitureId: string;
+  setSelectedFurnitureId: (furnitureId: string) => void;
 
   addFurnitureToScene: (
     furniture: Omit<PlacedFurniture, "id">,
@@ -44,8 +44,9 @@ export const useSimulatorStore = create<SimulatorState>((set) => ({
     furniture: [],
   },
 
-  selectedFurniture: null,
-  setSelectedFurniture: (furniture) => set({ selectedFurniture: furniture }),
+  selectedFurnitureId: "",
+  setSelectedFurnitureId: (furnitureId) =>
+    set({ selectedFurnitureId: furnitureId }),
 
   addFurnitureToScene: (furniture, position = [0, 0, 0]) =>
     set((state) => ({
@@ -76,9 +77,10 @@ export const useSimulatorStore = create<SimulatorState>((set) => ({
     set((state) => ({
       scene: {
         ...state.scene,
-        furniture: state.scene.furniture.map((f) =>
-          f.id === furnitureId ? { ...f, ...updates } : f
-        ),
+        furniture: state.scene.furniture.map((f) => {
+          console.log("found", f.id, furnitureId, f.id === furnitureId);
+          return f.id === furnitureId ? { ...f, ...updates } : f;
+        }),
       },
     })),
 

@@ -6,7 +6,12 @@ import Image from "next/image";
 import * as motion from "motion/react-client";
 import { AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
-import { ChevronLeftIcon, HousePlusIcon, X, XIcon } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  HousePlusIcon,
+  PanelLeftCloseIcon,
+  XIcon,
+} from "lucide-react";
 
 import { useSimulatorStore } from "@/stores/useSimulatorStore";
 import { RoomCategory } from "@/types/room";
@@ -89,7 +94,7 @@ const FurnitureSelector = () => {
         onClick={() => setExpand(!expand)}
       >
         {expand ? (
-          <XIcon className="size-5" />
+          <PanelLeftCloseIcon className="size-5" />
         ) : (
           <HousePlusIcon className="size-5" />
         )}
@@ -127,6 +132,8 @@ const FurnitureSelector = () => {
                       src={category.imageUrl}
                       fill={true}
                       className="object-cover w-full rounded-lg group-hover:scale-110 transition-all duration-300 opacity-80 group-hover:opacity-100"
+                      priority={true}
+                      sizes="(max-width: 768px) 100vw, 50vw"
                     />
                   )}
                   <div className="relative flex items-end h-full p-1">

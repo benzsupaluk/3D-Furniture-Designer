@@ -33,7 +33,7 @@ export const isFurnitureValidPosition = (
 ): boolean => {
   // get bounding box of current box with new position
   const currentBox = getBoundingBox(newPosition, furniture.dimension);
-
+  console.log("check");
   // check if any other box is overlapping with current box
   for (const otherFurniture of furnitureList) {
     const otherBox = getBoundingBox(
