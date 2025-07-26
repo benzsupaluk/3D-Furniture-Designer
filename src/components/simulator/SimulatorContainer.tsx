@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { CameraView } from "@/types/interactive";
 import { Coordinate } from "@/types/common";
 import { useTheme } from "@/hooks/use-theme";
+import { useNotificationStore } from "@/stores/useNotificationStore";
 import { ThemeConfig } from "@/utils";
 
 import * as motion from "motion/react-client";
@@ -134,6 +135,7 @@ const PlacedFurnitureActions = () => {
     updatePlacedFurnitureById,
     removeFurnitureFromScene,
   } = useSimulatorStore();
+  const { addNotification } = useNotificationStore();
 
   const selectedFurniture =
     scene?.furniture?.find((f) => f.id === selectedFurnitureId) || null;
@@ -152,6 +154,11 @@ const PlacedFurnitureActions = () => {
 
   const handleDeletedPlacedFurniture = () => {
     removeFurnitureFromScene(selectedFurnitureId);
+    addNotification({
+      title: `Remove ${selectedFurniture?.name} from scene`,
+      description: "",
+      state: "success",
+    });
     setSelectedFurnitureId("");
   };
 
@@ -197,8 +204,8 @@ const PlacedFurnitureActions = () => {
               variant="ghost-destructive"
               size="icon"
               onClick={(event) => {
-                console.log("remove");
                 event.stopPropagation();
+
                 handleDeletedPlacedFurniture();
               }}
               className="mt-2"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -11,11 +11,10 @@ import { PerspectiveCamera, Vector2 } from "three";
 import { useSpaceGeneratorStore } from "@/stores/useSpaceGeneratorStore";
 import { useCanvasCaptureStore } from "@/stores/useCanvasCaptureStore";
 
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import GenerateConfirmationModal from "./GenerateConfirmationModal";
 
 import { RefreshCwIcon, SparklesIcon, ChevronDown } from "lucide-react";
-import Spinner from "./loader/Spinner";
 
 const GenerateImageSection = ({ className }: { className?: string }) => {
   const [openConfirmationModal, setOpenConfirmationModal] =
@@ -23,6 +22,7 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
   const [hideResult, setHideResult] = useState<boolean>(false);
 
   const searchParams = useSearchParams();
+  const interval = useRef<NodeJS.Timeout | null>(null);
 
   const { refId, setRefId, poolResult, setPoolResult } =
     useSpaceGeneratorStore();
@@ -70,7 +70,14 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
   useEffect(() => {
     if (!refId) return;
 
-    const interval = setInterval(async () => {
+    const clearState = () => {
+      setRefId("");
+      if (interval.current) {
+        clearInterval(interval.current);
+      }
+      window.history.pushState(null, "", ``);
+    };
+    interval.current = setInterval(async () => {
       try {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/v1/generate/poll-result?refId=${refId}`,
@@ -83,23 +90,26 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
         );
         if (response.ok) {
           const responseData = await response.json();
-          if (responseData.data.status === "success") {
+          // success
+          if (responseData?.data?.status === "success") {
             setPoolResult(responseData.data);
-            setRefId("");
-
-            clearInterval(interval);
-            window.history.pushState(null, "", ``);
+            clearState();
+            return;
+          }
+          // failed
+          if (responseData?.date?.status === "failed") {
+            clearState();
           }
         }
       } catch (err) {
         console.error("Polling failed:", err);
-        setRefId("");
-        clearInterval(interval);
-        window.history.pushState(null, "", ``);
+        clearState();
       }
     }, 60000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearState();
+    };
   }, [refId]);
 
   const generateButton = (

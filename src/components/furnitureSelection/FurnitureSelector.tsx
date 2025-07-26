@@ -17,14 +17,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
+import { useNotificationStore } from "@/stores/useNotificationStore";
 import { useSimulatorStore } from "@/stores/useSimulatorStore";
 import { RoomCategory, Furniture } from "@/types/room";
 import { PlacedFurniture } from "@/types/interactive";
 import { Dimensions } from "@/types/common";
 import { modelPreloader } from "@/hooks/use-model-preloader";
 
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import { isFurnitureValidPosition } from "@/utils/validator";
 import { getDefaultDimensions } from "@/utils/model";
 
@@ -40,6 +40,8 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
     removeFurnitureFromScene,
     scene,
   } = useSimulatorStore();
+
+  const { addNotification } = useNotificationStore();
 
   const placedFurnitureList = scene.furniture;
 
@@ -100,7 +102,11 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
       }
       // cannot find any space
       if (!validPositionFound) {
-        // TODO: add notification
+        addNotification({
+          title: `Cannot add ${furniture.name} to scene`,
+          description: "No space available for this furniture",
+          state: "error",
+        });
         console.log("cannot find any space");
       }
     }
@@ -114,7 +120,7 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
   return (
     <aside
       className={cn(
-        "relative transition-all flex shadow-xs xl:h-[calc(100svh-64px)] h-[calc(100svh-32px)] rounded-xl bg-white border py-8",
+        "relative transition-all flex shadow-xs xl:h-[calc(100svh-64px)] h-[calc(100svh-32px)] rounded-xl bg-white border pt-8",
         expand
           ? "w-1/3 max-w-[240px] border-gray-200"
           : "w-5 max-w-[20px] border-transparent",
@@ -231,14 +237,14 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
                           </TooltipContent>
                         </Tooltip>
                         {/* Image */}
-                        <div className="grow overflow-hidden bg-gray-100 rounded-sm p-1">
+                        <div className="flex grow overflow-hidden bg-gray-100 rounded-sm p-1">
                           {furniture.previewImage && (
                             <Image
                               alt={furniture.name}
                               src={furniture.previewImage}
                               width={100}
                               height={100}
-                              className="object-contain"
+                              className="object-contain m-auto"
                               placeholder="blur"
                               blurDataURL="/images/placeholder.webp"
                             />
