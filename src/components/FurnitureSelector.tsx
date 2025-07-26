@@ -22,6 +22,7 @@ import { useSimulatorStore } from "@/stores/useSimulatorStore";
 import { RoomCategory, Furniture } from "@/types/room";
 import { PlacedFurniture } from "@/types/interactive";
 import { Dimensions } from "@/types/common";
+import { modelPreloader } from "@/app/hooks/modelPreloader";
 
 import { Button } from "./ui/button";
 import { isFurnitureValidPosition } from "@/utils/validator";
@@ -44,7 +45,18 @@ const FurnitureSelector = () => {
 
   const handleAddFurnitureToScene = async (furniture: Furniture) => {
     // pre-load model and get dimensions
-    let dimensions: Dimensions | null = getDefaultDimensions(furniture.type);
+    let dimensions: Dimensions | null = null;
+    if (furniture.modelPath) {
+      try {
+        const modelData = await modelPreloader.preloadModel(furniture.modelPath);
+        dimensions = modelData.dimensions;
+      } catch (error) {
+        // fallback to default if preload fails
+        dimensions = getDefaultDimensions(furniture.type);
+      }
+    } else {
+      dimensions = getDefaultDimensions(furniture.type);
+    }
     const color = furniture.color || getRandomHexColor();
 
     const placeFurniture: PlacedFurniture = {

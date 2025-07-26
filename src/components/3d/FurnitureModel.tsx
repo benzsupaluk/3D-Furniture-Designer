@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback, Suspense } from "react";
-import { Group, Vector2, Vector3, Plane, Box3 } from "three";
+import { Group, Vector2, Vector3, Plane, BoxGeometry } from "three";
 import { ThreeEvent, useThree } from "@react-three/fiber";
 import { Text, Html, useGLTF } from "@react-three/drei";
 import { PlacedFurniture } from "@/types/interactive";
 import { useDrag, useGesture } from "@use-gesture/react";
 import { Coordinate, Dimensions } from "@/types/common";
+import { modelPreloader } from "@/app/hooks/modelPreloader";
 
 import { isFurnitureValidPosition } from "@/utils/validator";
 
@@ -19,6 +20,7 @@ interface FurnitureModelProps {
   furniture: PlacedFurniture;
   onSelect: (fur: PlacedFurniture) => void;
   onMove: (fur: PlacedFurniture, position: Coordinate) => void;
+  onScale?: (fur: PlacedFurniture, scale: Coordinate) => void;
   isSelected?: boolean;
 }
 
@@ -26,9 +28,11 @@ const FurnitureModel = ({
   furniture,
   onSelect,
   onMove,
+  onScale,
   isSelected,
 }: FurnitureModelProps) => {
   const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [isScaling, setIsScaling] = useState<boolean>(false);
 
   const meshRef = useRef<Group>(null);
   const tempPosition = useRef<Coordinate>(furniture.position);
@@ -37,8 +41,18 @@ const FurnitureModel = ({
   const initialDragPoint = useRef<Vector3 | null>(null);
   // Stores the furniture's 3D position when the drag initially started
   const initialFurniturePosition = useRef<Vector3 | null>(null);
+  // Store the initial scale
+  const initialScale = useRef<Coordinate>([1, 1, 1]);
+  // Store scale temporarily
+  const tempScale = useRef<Coordinate>(furniture.scale || [1, 1, 1]);
 
-  const { scene: furnitureScene } = furniture?.modelPath
+  const cachedModel = furniture?.modelPath
+    ? modelPreloader.getCachedModel(furniture?.modelPath)
+    : null;
+
+  const { scene: furnitureScene } = cachedModel
+    ? cachedModel
+    : furniture?.modelPath
     ? useGLTF(furniture.modelPath)
     : { scene: null };
   // Clone the scene to avoid sharing the same 3D object instance between components
@@ -95,6 +109,9 @@ const FurnitureModel = ({
       onDragStart: ({ event, xy: [dragX, dragY] }) => {
         event.stopPropagation();
 
+        if (isScaling) {
+          return;
+        }
         setIsDragging(true);
 
         const intersectPoint = get3DIntersection(dragX, dragY);
@@ -113,7 +130,8 @@ const FurnitureModel = ({
           !meshRef.current ||
           !initialDragPoint.current ||
           !initialFurniturePosition.current ||
-          !isSelected
+          !isSelected ||
+          isScaling
         ) {
           return;
         }
@@ -188,10 +206,98 @@ const FurnitureModel = ({
     }
   );
 
-  const getRandomHexColor = (): string => {
-    const hex = Math.floor(Math.random() * 0xffffff).toString(16);
-    return `#${hex.padStart(6, "0")}`;
-  };
+  const bindScaleGizmoDrag = useGesture(
+    {
+      onDragStart: ({ event, xy: [dragX, dragY] }) => {
+        event.stopPropagation();
+        setIsScaling(true);
+
+        const intersectPoint = get3DIntersection(dragX, dragY);
+        if (intersectPoint) {
+          initialDragPoint.current = intersectPoint; // Re-use for scaling
+          initialScale.current = [...tempScale.current]; // Store current scale
+        }
+        invalidate();
+      },
+      onDrag: ({ event, xy: [dragX, dragY] }) => {
+        event.stopPropagation();
+        if (!initialDragPoint.current || !meshRef.current) return;
+
+        const currentIntersectPoint = get3DIntersection(dragX, dragY);
+        if (currentIntersectPoint) {
+          // Calculate distance dragged relative to the initial click point
+          const dragDelta = currentIntersectPoint
+            .clone()
+            .sub(initialDragPoint.current);
+
+          // Get the furniture's world position
+          const furnitureWorldPosition = new Vector3().set(
+            tempPosition.current[0],
+            tempPosition.current[1],
+            tempPosition.current[2]
+          );
+
+          // Calculate a vector from furniture origin to initial drag point on the floor
+
+          // This is a simplified uniform scaling. For Blender-like axis-specific scaling,
+          // you'd project dragDelta onto the specific axis vector.
+          // For uniform scaling, we can use the magnitude of the drag along an arbitrary direction (e.g., world X or Z).
+          // Let's use the X-axis for simplicity in this example.
+          // A more robust solution might involve projecting onto the camera's right/up vector.
+
+          // Simple scaling factor based on X-axis movement
+          const scaleFactorDelta = dragDelta.x * 0.5; // Adjust sensitivity
+          let newScaleValue = initialScale.current[0] + scaleFactorDelta;
+
+          // Clamp scale to reasonable values (e.g., min 0.1, max 5.0)
+          newScaleValue = Math.max(0.1, Math.min(5.0, newScaleValue));
+
+          const newScale: [number, number, number] = [
+            newScaleValue,
+            newScaleValue,
+            newScaleValue,
+          ];
+
+          // Check collision with the new scale
+          if (
+            isFurnitureValidPosition(
+              tempPosition.current,
+              { ...furniture, scale: newScale },
+              otherFurniture
+            )
+          ) {
+            tempScale.current = newScale; // Update ref
+            meshRef.current.scale.set(...newScale); // Apply scale to the mesh
+          }
+        }
+        invalidate();
+      },
+      onDragEnd: ({ event }) => {
+        event.stopPropagation();
+        setIsScaling(false);
+        initialDragPoint.current = null;
+        initialScale.current = [1, 1, 1]; // Reset
+        onScale?.(furniture, tempScale.current); // Persist the new scale
+        invalidate();
+      },
+    },
+    {
+      drag: {
+        filterTaps: true,
+        threshold: 1, // Make it sensitive to start dragging
+      },
+    }
+  );
+
+  const getScaledDimensions = useCallback(() => {
+    return {
+      width: furniture.dimensions.width * tempScale.current[0],
+      height: furniture.dimensions.height * tempScale.current[1],
+      depth: furniture.dimensions.depth * tempScale.current[2],
+    };
+  }, [furniture.dimensions, tempScale.current]);
+
+  const scaledDims = getScaledDimensions();
 
   const renderGeometry = () => {
     const { width, height, depth } = furniture.dimensions;
@@ -308,7 +414,7 @@ const FurnitureModel = ({
       >
         <Text
           key={furniture.name}
-          position={[0, furniture.dimensions.height + 1, 0]}
+          position={[0, furniture.dimensions.height + 0.5, 0]}
           fontSize={0.2}
           color={"#475467"}
           anchorX="center"
@@ -350,16 +456,77 @@ const FurnitureModel = ({
               <meshBasicMaterial color="#0543f5" transparent opacity={0.8} />
             </mesh>
             {/* Existing selection outline */}
-            {/* <mesh>
-            <boxGeometry
-              args={[
-                furniture.dimensions.width + 0.1,
-                (furniture.dimensions.height + 0.1) / 2,
-                furniture.dimensions.depth + 0.1,
-              ]}
-            />
-            <meshBasicMaterial color="#000000" wireframe opacity={1} />
-          </mesh> */}
+            {/* Scaling Gizmo (Drag Line) */}
+            {/* <mesh
+              position={[scaledDims.width / 2 + 0.5, scaledDims.height / 2, 0]} // Position it relative to the object's edge
+              {...bindScaleGizmoDrag()}
+            >
+              <cylinderGeometry args={[0.05, 0.05, 1.0, 8]} />{" "} */}
+            {/* A thin cylinder for the handle */}
+            {/* <meshBasicMaterial color={"#FF0000"} />{" "} */}
+            {/* Red for X-axis indication */}
+            {/* <boxGeometry
+                args={[
+                  furniture.dimensions.width,
+                  furniture.dimensions.height + 0.1,
+                  furniture.dimensions.depth + 0.1,
+                ]}
+              />
+              <meshBasicMaterial
+                color="#3b82f6"
+                wireframe
+                transparent
+                opacity={0.5}
+              /> */}
+            {/* </mesh> */}
+
+            {/* Arrow */}
+            <group
+              position={[scaledDims.width / 2 + 0.5, scaledDims.height / 2, 0]}
+              {...bindScaleGizmoDrag()}
+            >
+              {/* Shaft of the arrow */}
+              <mesh>
+                <cylinderGeometry args={[0.05, 0.05, 1.0, 2]} />
+                <meshBasicMaterial color={"#282120"} />
+              </mesh>
+              {/* Arrowhead (cone) at the tip */}
+              <mesh position={[0, 0.6, 0]}>
+                <coneGeometry args={[0.1, 0.2, 4]} />
+                <meshBasicMaterial color={"#282120"} />
+              </mesh>
+            </group>
+            {isScaling && (
+              <mesh>
+                {/* <boxGeometry
+                  args={[
+                    furniture.dimensions.width + 0.1,
+                    furniture.dimensions.height + 1.5,
+                    furniture.dimensions.depth + 0.1,
+                  ]}
+                />
+                <meshBasicMaterial
+                  color="#3b82f6"
+                  wireframe
+                  transparent
+                  opacity={0.5}
+                /> */}
+                <lineSegments
+                  position={[0, furniture.dimensions.height / 2, 0]}
+                >
+                  <edgesGeometry
+                    args={[
+                      new BoxGeometry(
+                        furniture.dimensions.width + 0.1,
+                        furniture.dimensions.height + 1.5,
+                        furniture.dimensions.depth + 0.1
+                      ),
+                    ]}
+                  />
+                  <lineBasicMaterial color="#feda15" />
+                </lineSegments>
+              </mesh>
+            )}
           </>
         )}
       </group>

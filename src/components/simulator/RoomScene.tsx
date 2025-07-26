@@ -18,7 +18,7 @@ import { useSimulatorStore } from "@/stores/useSimulatorStore";
 import RoomSimulator from "@/components/simulator/RoomSimulator";
 import { isFurnitureValidPosition } from "@/utils/validator";
 
-const FurnitureModel = dynamic(() => import("@/components/3d/FunitureModel"), {
+const FurnitureModel = dynamic(() => import("@/components/3d/FurnitureModel"), {
   ssr: false,
   loading: () => <></>,
 });
@@ -54,6 +54,13 @@ const RoomScene = () => {
     if (!target?.closest?.(".object-action")) {
       setSelectedFurnitureId("");
     }
+  };
+
+  const handleScalePlacedFurniture = (
+    furniture: PlacedFurniture,
+    newScale: Coordinate
+  ) => {
+    updatePlacedFurnitureById(furniture.id, { scale: newScale });
   };
 
   useEffect(() => {
@@ -146,6 +153,7 @@ const RoomScene = () => {
               furniture={furniture}
               onSelect={handleSelectPlacedFurniture}
               onMove={handleMovePlacedFurniture}
+              onScale={handleScalePlacedFurniture}
               isSelected={selectedFurnitureId === furniture.id}
             />
           </Suspense>

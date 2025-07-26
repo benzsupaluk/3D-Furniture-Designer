@@ -31,16 +31,21 @@ export interface BoundingBox {
 
 export const getBoundingBox = (
   position: Coordinate,
-  dimensions: Dimensions
+  dimensions: Dimensions,
+  scale: Coordinate
 ): BoundingBox => {
   const [x, y, z] = position;
 
+  const width = dimensions.width * scale[0];
+  const height = dimensions.height * scale[1];
+  const depth = dimensions.depth * scale[2];
+
   return {
-    minX: x - dimensions.width / 2,
-    maxX: x + dimensions.width / 2,
-    minY: y - dimensions.height / 2,
-    maxY: y + dimensions.height / 2,
-    minZ: z - dimensions.depth / 2,
-    maxZ: z + dimensions.depth / 2,
+    minX: x - width / 2,
+    maxX: x + width / 2,
+    minY: y - height / 2,
+    maxY: y + height / 2,
+    minZ: z - depth / 2,
+    maxZ: z + depth / 2,
   };
 };

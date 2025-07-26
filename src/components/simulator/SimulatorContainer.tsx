@@ -92,6 +92,7 @@ const PlacedFurnitureActions = () => {
     selectedFurnitureId,
     setSelectedFurnitureId,
     updatePlacedFurnitureById,
+    removeFurnitureFromScene,
   } = useSimulatorStore();
 
   const selectedFurniture =
@@ -110,6 +111,7 @@ const PlacedFurnitureActions = () => {
   };
 
   const handleDeletedPlacedFurniture = () => {
+    removeFurnitureFromScene(selectedFurnitureId);
     setSelectedFurnitureId("");
   };
 
@@ -154,7 +156,11 @@ const PlacedFurnitureActions = () => {
             <Button
               variant="ghost-destructive"
               size="icon"
-              onClick={handleDeletedPlacedFurniture}
+              onClick={(event) => {
+                console.log("remove");
+                event.stopPropagation();
+                handleDeletedPlacedFurniture();
+              }}
               className="mt-2"
             >
               <TrashIcon className="w-4 h-4" />
