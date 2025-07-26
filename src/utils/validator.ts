@@ -11,14 +11,17 @@ export const isFurnitureValidPosition = (
   const currentBox = getBoundingBox(
     newPosition,
     furniture.dimensions,
-    furniture.scale
+    furniture.scale,
+    furniture.rotation?.[1] ?? 0
   );
+
   // check if any other box is overlapping with current box
   for (const otherFurniture of furnitureList) {
     const otherBox = getBoundingBox(
       otherFurniture.position,
       otherFurniture.dimensions,
-      otherFurniture.scale
+      otherFurniture.scale,
+      otherFurniture.rotation?.[1] ?? 0
     );
     if (
       currentBox.minX < otherBox.maxX &&
@@ -36,8 +39,8 @@ export const isFurnitureValidPosition = (
   const roomBoundary = {
     minX: -5,
     maxX: 5,
-    minZ: -4.75,
-    maxZ: 4.75,
+    minZ: -4.8,
+    maxZ: 4.8,
   };
   if (
     currentBox.minX < roomBoundary.minX ||

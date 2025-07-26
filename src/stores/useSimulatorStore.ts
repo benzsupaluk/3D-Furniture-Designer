@@ -31,9 +31,6 @@ type SimulatorState = {
 
   interactiveMode: InteractiveMode;
   setInteractiveMode: (mode: Partial<InteractiveMode>) => void;
-
-  loadingFullScreen: boolean;
-  setLoadingFullScreen: (value: boolean) => void;
 };
 
 export const useSimulatorStore = create<SimulatorState>((set) => ({
@@ -97,7 +94,4 @@ export const useSimulatorStore = create<SimulatorState>((set) => ({
     set((state) => ({
       interactiveMode: { ...state.interactiveMode, ...mode },
     })),
-
-  loadingFullScreen: false,
-  setLoadingFullScreen: (value) => set({ loadingFullScreen: value }),
 }));

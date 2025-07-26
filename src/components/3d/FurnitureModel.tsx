@@ -7,7 +7,7 @@ import { Text, Html, useGLTF } from "@react-three/drei";
 import { PlacedFurniture } from "@/types/interactive";
 import { useDrag, useGesture } from "@use-gesture/react";
 import { Coordinate, Dimensions } from "@/types/common";
-import { modelPreloader } from "@/app/hooks/modelPreloader";
+import { modelPreloader } from "@/hooks/use-model-preloader";
 
 import { isFurnitureValidPosition } from "@/utils/validator";
 
@@ -20,7 +20,11 @@ interface FurnitureModelProps {
   furniture: PlacedFurniture;
   onSelect: (fur: PlacedFurniture) => void;
   onMove: (fur: PlacedFurniture, position: Coordinate) => void;
-  onScale?: (fur: PlacedFurniture, scale: Coordinate) => void;
+  onScale?: (
+    fur: PlacedFurniture,
+    position: Coordinate,
+    scale: Coordinate
+  ) => void;
   isSelected?: boolean;
 }
 
@@ -230,27 +234,12 @@ const FurnitureModel = ({
             .clone()
             .sub(initialDragPoint.current);
 
-          // Get the furniture's world position
-          const furnitureWorldPosition = new Vector3().set(
-            tempPosition.current[0],
-            tempPosition.current[1],
-            tempPosition.current[2]
-          );
-
-          // Calculate a vector from furniture origin to initial drag point on the floor
-
-          // This is a simplified uniform scaling. For Blender-like axis-specific scaling,
-          // you'd project dragDelta onto the specific axis vector.
-          // For uniform scaling, we can use the magnitude of the drag along an arbitrary direction (e.g., world X or Z).
-          // Let's use the X-axis for simplicity in this example.
-          // A more robust solution might involve projecting onto the camera's right/up vector.
-
           // Simple scaling factor based on X-axis movement
           const scaleFactorDelta = dragDelta.x * 0.5; // Adjust sensitivity
           let newScaleValue = initialScale.current[0] + scaleFactorDelta;
 
-          // Clamp scale to reasonable values (e.g., min 0.1, max 5.0)
-          newScaleValue = Math.max(0.1, Math.min(5.0, newScaleValue));
+          // Clamp scale to reasonable values (min 0.3, max 3.0)
+          newScaleValue = Math.max(0.3, Math.min(3.0, newScaleValue));
 
           const newScale: [number, number, number] = [
             newScaleValue,
@@ -258,7 +247,7 @@ const FurnitureModel = ({
             newScaleValue,
           ];
 
-          // Check collision with the new scale
+          // Check collision with the new scale (use current position, new scale)
           if (
             isFurnitureValidPosition(
               tempPosition.current,
@@ -277,7 +266,16 @@ const FurnitureModel = ({
         setIsScaling(false);
         initialDragPoint.current = null;
         initialScale.current = [1, 1, 1]; // Reset
-        onScale?.(furniture, tempScale.current); // Persist the new scale
+        // Only persist the new scale if it is valid
+        if (
+          isFurnitureValidPosition(
+            tempPosition.current,
+            { ...furniture, scale: tempScale.current },
+            otherFurniture
+          )
+        ) {
+          onScale?.(furniture, tempPosition.current, tempScale.current);
+        }
         invalidate();
       },
     },
@@ -410,6 +408,7 @@ const FurnitureModel = ({
         ref={meshRef}
         position={tempPosition.current}
         rotation={furniture.rotation}
+        scale={furniture.scale}
         {...bind()}
       >
         <Text
@@ -424,10 +423,7 @@ const FurnitureModel = ({
         </Text>
 
         {furniture.modelPath && furnitureScene ? (
-          <primitive
-            object={clonedScene.current || furnitureScene}
-            scale={furniture.scale}
-          />
+          <primitive object={clonedScene.current || furnitureScene} />
         ) : (
           renderGeometry()
         )}
@@ -481,13 +477,10 @@ const FurnitureModel = ({
             {/* </mesh> */}
 
             {/* Arrow */}
-            <group
-              position={[scaledDims.width / 2 + 0.5, scaledDims.height / 2, 0]}
-              {...bindScaleGizmoDrag()}
-            >
+            <group position={[1.4, 0, 0]} {...bindScaleGizmoDrag()}>
               {/* Shaft of the arrow */}
               <mesh>
-                <cylinderGeometry args={[0.05, 0.05, 1.0, 2]} />
+                <cylinderGeometry args={[0.05, 0.05, 1.0, 10]} />
                 <meshBasicMaterial color={"#282120"} />
               </mesh>
               {/* Arrowhead (cone) at the tip */}

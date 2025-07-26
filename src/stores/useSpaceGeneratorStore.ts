@@ -3,6 +3,7 @@ import { SpaceType, SpaceStyle, PoolResult } from "@/types/generator";
 
 type SpaceGeneratorState = {
   refId: string;
+  setRefId: (refId: string) => void;
 
   spaceType: SpaceType;
   setSpaceType: (spaceType: SpaceType) => void;
@@ -16,6 +17,7 @@ type SpaceGeneratorState = {
 
 export const useSpaceGeneratorStore = create<SpaceGeneratorState>((set) => ({
   refId: "",
+  setRefId: (refId) => set({ refId }),
 
   spaceType: "living_room",
   setSpaceType: (spaceType) => set({ spaceType }),

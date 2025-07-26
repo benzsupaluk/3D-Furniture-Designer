@@ -13,8 +13,9 @@ export type SpaceGeneratorRequest = {
   renovateType: string;
 };
 
+type PollStatus = "processing" | "success" | "failed";
 export type PoolResult = {
-  status: string;
+  status: PollStatus;
   result: string[];
   webhook: string;
 };

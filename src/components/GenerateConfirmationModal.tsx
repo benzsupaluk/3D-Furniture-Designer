@@ -1,6 +1,7 @@
 import { useId, useTransition } from "react";
 
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 
 import {
   Dialog,
@@ -13,11 +14,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-import { useSimulatorStore } from "@/stores/useSimulatorStore";
+import { useLoadingStore } from "@/stores/useLoadingStore";
+import { useCanvasCaptureStore } from "@/stores/useCanvasCaptureStore";
 
 import { cn } from "@/lib/utils";
 
 import { SparklesIcon } from "lucide-react";
+import { useSpaceGeneratorStore } from "@/stores/useSpaceGeneratorStore";
 
 type GenerateConfirmationModalProps = {
   open: boolean;
@@ -31,7 +34,12 @@ const GenerateConfirmationModal = ({
   className,
 }: GenerateConfirmationModalProps) => {
   const dialogId = useId();
-  const { loadingFullScreen, setLoadingFullScreen } = useSimulatorStore();
+  const searchParams = useSearchParams();
+
+  const { loadingFullScreen, setLoadingFullScreen } = useLoadingStore();
+  const { imageDataUrl } = useCanvasCaptureStore();
+  const { spaceType, spaceStyle, setRefId } = useSpaceGeneratorStore();
+
   const [isPending, startTransition] = useTransition();
 
   const onClose = () => {
@@ -40,10 +48,34 @@ const GenerateConfirmationModal = ({
 
   const handleGenerateScene = () => {
     startTransition(async () => {
+      setLoadingFullScreen(true);
       try {
-        setLoadingFullScreen(true);
-
-        await new Promise((r) => setTimeout(r, 2000));
+        const body = {
+          model: "spacely-v1",
+          imageUrl: imageDataUrl,
+          spaceType: spaceType,
+          spaceStyle: spaceStyle,
+          renovateType: "residential",
+        };
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/v1/generate/standard`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-API-KEY": process.env.NEXT_PUBLIC_API_KEY || "",
+            },
+            body: JSON.stringify(body),
+          }
+        );
+        if (response.ok) {
+          const data = await response.json();
+          console.log(data);
+          setRefId(data.data);
+          const params = new URLSearchParams(searchParams.toString());
+          params.set("refId", data.data);
+          window.history.pushState(null, "", `?${params.toString()}`);
+        }
       } catch (error) {
         console.log(error);
       } finally {
@@ -69,7 +101,18 @@ const GenerateConfirmationModal = ({
         </DialogHeader>
         <DialogBody>
           {/* screenshot */}
-          <div className="w-40 h-40 bg-gray-50 mx-auto"></div>
+          <div className="bg-gray-50 mx-auto">
+            {imageDataUrl && (
+              <Image
+                alt="Room simulator"
+                src={imageDataUrl}
+                width={400}
+                height={400}
+                className="object-contain h-[400px] w-auto"
+                style={{ width: "auto", height: "400px" }}
+              />
+            )}
+          </div>
         </DialogBody>
         <DialogFooter className="flex items-center gap-3">
           <Button

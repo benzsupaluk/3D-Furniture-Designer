@@ -1,4 +1,5 @@
 import { RoomCategory } from "@/types/room";
+import { ThemeConfig } from "@/utils/theme";
 
 export const ROOM_CATEGORIES: RoomCategory[] = [
   {
@@ -111,5 +112,35 @@ export const ROOM_CATEGORIES: RoomCategory[] = [
         categoryId: "livingRoom",
       },
     ],
+  },
+];
+
+export const THEME_CONFIGS: ThemeConfig[] = [
+  {
+    name: "dot-light-theme",
+    style: {
+      backgroundImage: "radial-gradient(circle, #d1d5db 1px, transparent 1px)",
+      backgroundSize: "20px 20px",
+    },
+  },
+  {
+    name: "dark-light-theme",
+    style: {
+      backgroundColor: "#1B1C1E",
+      backgroundImage: "radial-gradient(circle, #d1d5db 1px, transparent 1px)",
+      backgroundSize: "20px 20px",
+    },
+  },
+  {
+    name: "light-theme",
+    style: {
+      backgroundColor: "#f6f7f8",
+    },
+  },
+  {
+    name: "dark-theme",
+    style: {
+      backgroundColor: "#1B1C1E",
+    },
   },
 ];

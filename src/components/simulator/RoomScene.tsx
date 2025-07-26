@@ -2,12 +2,13 @@
 
 import dynamic from "next/dynamic";
 import { Suspense, useRef, useEffect } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import {
   OrbitControls,
   Environment,
   PerspectiveCamera,
 } from "@react-three/drei";
+
 import * as THREE from "three";
 import { PlacedFurniture } from "@/types/interactive";
 import { Coordinate } from "@/types/common";
@@ -58,9 +59,19 @@ const RoomScene = () => {
 
   const handleScalePlacedFurniture = (
     furniture: PlacedFurniture,
+    newPosition: Coordinate,
     newScale: Coordinate
   ) => {
-    updatePlacedFurnitureById(furniture.id, { scale: newScale });
+    // const otherFurniture = scene.furniture.filter((f) => f.id !== furniture.id);
+    // // Use the new scale in the collision check
+    // const furnitureWithNewScale = { ...furniture, scale: newScale };
+    // if (isFurnitureValidPosition(newPosition, furnitureWithNewScale, otherFurniture)) {
+    //   updatePlacedFurnitureById(furniture.id, { scale: newScale, position: newPosition });
+    // }
+    updatePlacedFurnitureById(furniture.id, {
+      scale: newScale,
+      position: newPosition,
+    });
   };
 
   useEffect(() => {
@@ -96,7 +107,10 @@ const RoomScene = () => {
   const isEnableOrbitControls = !selectedFurnitureId;
 
   return (
-    <Canvas onPointerMissed={handlePointerMissed}>
+    <Canvas
+      gl={{ preserveDrawingBuffer: true }}
+      onPointerMissed={handlePointerMissed}
+    >
       <PerspectiveCamera
         ref={cameraRef}
         makeDefault

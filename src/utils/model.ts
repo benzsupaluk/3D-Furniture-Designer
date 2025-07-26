@@ -32,7 +32,8 @@ export interface BoundingBox {
 export const getBoundingBox = (
   position: Coordinate,
   dimensions: Dimensions,
-  scale: Coordinate
+  scale: Coordinate,
+  rotationY: number = 0
 ): BoundingBox => {
   const [x, y, z] = position;
 
@@ -40,12 +41,23 @@ export const getBoundingBox = (
   const height = dimensions.height * scale[1];
   const depth = dimensions.depth * scale[2];
 
+  // Normalize rotation to 0-2π range
+  const angle = ((rotationY % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+
+  // Calculate exact rotated bounding box
+  const sin = Math.abs(Math.sin(angle));
+  const cos = Math.abs(Math.cos(angle));
+
+  // Rotated dimensions (axis-aligned bounding box after rotation)
+  const rotatedWidth = width * cos + depth * sin;
+  const rotatedDepth = width * sin + depth * cos;
+
   return {
-    minX: x - width / 2,
-    maxX: x + width / 2,
+    minX: x - rotatedWidth / 2,
+    maxX: x + rotatedWidth / 2,
     minY: y - height / 2,
     maxY: y + height / 2,
-    minZ: z - depth / 2,
-    maxZ: z + depth / 2,
+    minZ: z - rotatedDepth / 2,
+    maxZ: z + rotatedDepth / 2,
   };
 };

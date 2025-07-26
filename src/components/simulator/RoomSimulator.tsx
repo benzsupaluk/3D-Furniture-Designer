@@ -1,7 +1,8 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Mesh } from "three";
 import * as THREE from "three";
 import { useThree, useFrame, useLoader } from "@react-three/fiber";
+import { useCanvasCaptureStore } from "@/stores/useCanvasCaptureStore";
 
 const RoomSimulator = () => {
   const floorRef = useRef<Mesh>(null);
@@ -9,7 +10,12 @@ const RoomSimulator = () => {
   const leftWallRef = useRef<Mesh>(null);
   const rightWallRef = useRef<Mesh>(null);
 
-  const { camera } = useThree();
+  const { gl, camera, scene: threeScene } = useThree();
+  const setRefs = useCanvasCaptureStore((s) => s.setRefs);
+
+  useEffect(() => {
+    setRefs(gl, threeScene, camera);
+  }, [gl, threeScene, camera, setRefs]);
 
   useFrame(() => {
     if (leftWallRef.current) {

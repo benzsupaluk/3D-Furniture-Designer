@@ -4,7 +4,7 @@ import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
 
-import { useSimulatorStore } from "@/stores/useSimulatorStore";
+import { useLoadingStore } from "@/stores/useLoadingStore";
 
 import { cn } from "@/lib/utils";
 
@@ -36,7 +36,7 @@ function DialogOverlay({
   className,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Overlay>) {
-  const { loadingFullScreen } = useSimulatorStore();
+  const { loadingFullScreen } = useLoadingStore();
   return (
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
@@ -58,7 +58,7 @@ function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean;
 }) {
-  const { loadingFullScreen } = useSimulatorStore();
+  const { loadingFullScreen } = useLoadingStore();
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />

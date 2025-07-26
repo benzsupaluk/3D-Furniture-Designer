@@ -10,7 +10,7 @@ import {
   ChevronLeftIcon,
   HousePlusIcon,
   PanelLeftCloseIcon,
-  XIcon,
+  InfoIcon,
 } from "lucide-react";
 import {
   Tooltip,
@@ -22,13 +22,13 @@ import { useSimulatorStore } from "@/stores/useSimulatorStore";
 import { RoomCategory, Furniture } from "@/types/room";
 import { PlacedFurniture } from "@/types/interactive";
 import { Dimensions } from "@/types/common";
-import { modelPreloader } from "@/app/hooks/modelPreloader";
+import { modelPreloader } from "@/hooks/use-model-preloader";
 
 import { Button } from "./ui/button";
 import { isFurnitureValidPosition } from "@/utils/validator";
 import { getDefaultDimensions } from "@/utils/model";
 
-const FurnitureSelector = () => {
+const FurnitureSelector = ({ className }: { className?: string }) => {
   const [selectedCategory, setSelectedCategory] = useState<RoomCategory | null>(
     null
   );
@@ -48,7 +48,9 @@ const FurnitureSelector = () => {
     let dimensions: Dimensions | null = null;
     if (furniture.modelPath) {
       try {
-        const modelData = await modelPreloader.preloadModel(furniture.modelPath);
+        const modelData = await modelPreloader.preloadModel(
+          furniture.modelPath
+        );
         dimensions = modelData.dimensions;
       } catch (error) {
         // fallback to default if preload fails
@@ -112,10 +114,11 @@ const FurnitureSelector = () => {
   return (
     <aside
       className={cn(
-        "relative transition-all flex shadow-xs md:h-[calc(100svh-64px)] h-[calc(100svh-32px)] rounded-xl bg-white border py-8",
+        "relative transition-all flex shadow-xs xl:h-[calc(100svh-64px)] h-[calc(100svh-32px)] rounded-xl bg-white border py-8",
         expand
           ? "w-1/3 max-w-[240px] border-gray-200"
-          : "w-5 max-w-[20px] border-transparent"
+          : "w-5 max-w-[20px] border-transparent",
+        className
       )}
     >
       <Button
@@ -164,6 +167,8 @@ const FurnitureSelector = () => {
                       className="object-cover mx-auto w-full rounded-lg group-hover:scale-110 transition-all duration-300 opacity-80 group-hover:opacity-100"
                       priority={true}
                       sizes="(max-width: 768px) 100vw, 50vw"
+                      placeholder="blur"
+                      blurDataURL="/images/placeholder.webp"
                     />
                   )}
                   <div className="relative flex items-end h-full p-1">
@@ -201,46 +206,49 @@ const FurnitureSelector = () => {
                 {selectedCategory.furniture.map((furniture) => {
                   return (
                     <AnimatePresence key={furniture.id} mode="wait">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <motion.button
-                            type="button"
-                            key={furniture.id}
-                            initial={{ y: 10, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            exit={{ y: -10, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className={cn(
-                              "rounded cursor-pointer h-40 w-full flex flex-col border-gray-300 gap-2 border hover:border-primary-600 overflow-hidden p-1 hover:ring-4 ring-primary-600"
-                            )}
-                            onClick={() => {
-                              handleAddFurnitureToScene(furniture);
-                            }}
-                          >
-                            {/* Image */}
-                            <div className="grow overflow-hidden bg-gray-100 rounded-sm p-1">
-                              {furniture.previewImage && (
-                                <Image
-                                  alt={furniture.name}
-                                  src={furniture.previewImage}
-                                  width={100}
-                                  height={100}
-                                  className="object-contain h-25 w-auto"
-                                />
-                              )}
-                            </div>
-                            {/* Name */}
-                            <span className="text-xs font-medium h-6 flex items-center justify-center text-center line-clamp-2">
-                              {furniture.name}
-                            </span>
-                          </motion.button>
-                        </TooltipTrigger>
-                        <TooltipContent className="space-y-0.5 text-xs text-gray-500 max-w-40">
-                          <p className="font-semibold">{furniture.name}</p>
-                          <hr />
-                          <p>{furniture.description}</p>
-                        </TooltipContent>
-                      </Tooltip>
+                      <motion.button
+                        type="button"
+                        key={furniture.id}
+                        initial={{ y: 10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: -10, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className={cn(
+                          "relative rounded cursor-pointer h-40 w-full flex flex-col border-gray-300 gap-2 border hover:border-primary-600 overflow-hidden p-1 hover:ring-4 ring-primary-600"
+                        )}
+                        onClick={() => {
+                          handleAddFurnitureToScene(furniture);
+                        }}
+                      >
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon className="absolute size-3 top-2 right-2 text-gray-600 opacity-50" />
+                          </TooltipTrigger>
+                          <TooltipContent className="space-y-0.5 text-xs text-gray-500 max-w-40">
+                            <p className="font-semibold">{furniture.name}</p>
+                            <hr />
+                            <p>{furniture.description}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        {/* Image */}
+                        <div className="grow overflow-hidden bg-gray-100 rounded-sm p-1">
+                          {furniture.previewImage && (
+                            <Image
+                              alt={furniture.name}
+                              src={furniture.previewImage}
+                              width={100}
+                              height={100}
+                              className="object-contain"
+                              placeholder="blur"
+                              blurDataURL="/images/placeholder.webp"
+                            />
+                          )}
+                        </div>
+                        {/* Name */}
+                        <span className="text-xs font-medium h-6 flex items-center justify-center text-center line-clamp-2">
+                          {furniture.name}
+                        </span>
+                      </motion.button>
                     </AnimatePresence>
                   );
                 })}

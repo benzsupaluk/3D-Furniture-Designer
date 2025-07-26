@@ -1,12 +1,11 @@
 "use client";
 
-import { useSimulatorStore } from "@/stores/useSimulatorStore";
-
+import { useLoadingStore } from "@/stores/useLoadingStore";
 
 const FullScreenLoader = () => {
-  const loading = useSimulatorStore((state) => state.loadingFullScreen);
+  const { loadingFullScreen } = useLoadingStore();
 
-  if (!loading) return null;
+  if (!loadingFullScreen) return null;
 
   return (
     <div className="fixed inset-0 z-[3000] flex items-center justify-center flex-col gap-3 bg-black/20 bg-opacity-50">

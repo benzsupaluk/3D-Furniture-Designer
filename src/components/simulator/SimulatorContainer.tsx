@@ -2,24 +2,34 @@
 
 import dynamic from "next/dynamic";
 
-import Spinner from "@/components/loader/Spinner";
-import { Button } from "@/components/ui/button";
 import { useSimulatorStore } from "@/stores/useSimulatorStore";
 
 import { cn } from "@/lib/utils";
-import { isFurnitureValidPosition } from "@/utils/validator";
 
-import { CameraView, PlacedFurniture } from "@/types/interactive";
+import { CameraView } from "@/types/interactive";
 import { Coordinate } from "@/types/common";
+import { useTheme } from "@/hooks/use-theme";
+import { ThemeConfig } from "@/utils";
 
 import * as motion from "motion/react-client";
 import { AnimatePresence } from "motion/react";
+
+import Spinner from "@/components/loader/Spinner";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
 import {
   TrashIcon,
   RotateCwIcon,
   RotateCcwIcon,
   SwitchCameraIcon,
+  Settings2Icon,
 } from "lucide-react";
+import { THEME_CONFIGS } from "@/constants";
 
 const RoomScene = dynamic(() => import("@/components/simulator/RoomScene"), {
   ssr: false,
@@ -27,21 +37,22 @@ const RoomScene = dynamic(() => import("@/components/simulator/RoomScene"), {
 });
 
 const SimulatorContainer = ({ className }: { className?: string }) => {
+  const { currentTheme, isClient } = useTheme();
+
   return (
     <>
       <section
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, #d1d5db 1px, transparent 1px)",
-          backgroundSize: "20px 20px",
-        }}
+        style={isClient ? currentTheme.style : THEME_CONFIGS[0].style}
         className={cn(
           "relative border rounded-lg border-primary-300 overflow-hidden",
           className
         )}
       >
         <RoomScene />
-        <SimulatorHeader />
+        {/* Camera controller */}
+        <CameraControls />
+        {/* Config */}
+        <ConfigSettings currentTheme={currentTheme} />
         {/* Placed furniture action */}
         <PlacedFurnitureActions />
         {/* Placed furniture label */}
@@ -51,10 +62,39 @@ const SimulatorContainer = ({ className }: { className?: string }) => {
   );
 };
 
-const SimulatorHeader = () => {
+const ConfigSettings = ({ currentTheme }: { currentTheme: ThemeConfig }) => {
+  const { selectTheme, themes } = useTheme();
+
   return (
-    <div className="absolute top-2 right-2 p-2 rounded-lg bg-primary-50/70">
-      <CameraControls />
+    <div className="absolute top-3 right-1">
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant={"secondary"} className="rounded-full p-0 w-8 h-8">
+            <Settings2Icon />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="end" side="bottom" className="text-sm">
+          <div className="flex flex-col gap-2">
+            <div className="text-gray-700 font-semibold">Background</div>
+            <div className="flex flex-wrap gap-1">
+              {themes.map((theme, index) => {
+                const isSelected = currentTheme.name === theme.name;
+                return (
+                  <div
+                    key={index}
+                    style={theme.style}
+                    onClick={() => selectTheme(theme.name)}
+                    className={cn(
+                      "border border-gray-300 w-20 h-14 rounded-md hover:ring-2 ring-primary-600 cursor-pointer",
+                      isSelected && "ring-2 ring-primary-600"
+                    )}
+                  ></div>
+                );
+              })}
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };
@@ -63,7 +103,7 @@ const CameraControls = () => {
   const CAMERA_CONTROL_LIST: CameraView[] = ["top", "side", "front", "orbit"];
   const { setCameraView } = useSimulatorStore();
   return (
-    <div className="flex items-center gap-3">
+    <div className="absolute top-2 right-11 p-2 rounded-lg bg-primary-50/70 flex items-center gap-3">
       <SwitchCameraIcon className="size-6 text-primary-700" />
       <ul className="flex flex-wrap gap-2">
         {CAMERA_CONTROL_LIST.map((view, index) => {
@@ -76,7 +116,7 @@ const CameraControls = () => {
                 size={"xs"}
                 onClick={() => setCameraView(view)}
               >
-                {view}
+                {view?.[0]?.toUpperCase() + view?.slice(1)}
               </Button>
             </li>
           );
@@ -101,13 +141,13 @@ const PlacedFurnitureActions = () => {
   const handleRotatePlacedFurniture = (delta: number) => {
     if (!selectedFurniture) return;
     const newY = selectedFurniture.rotation[1] + delta;
-    const newPosition: Coordinate = [
+    const newRotation: Coordinate = [
       selectedFurniture.rotation[0],
       newY,
       selectedFurniture.rotation[2],
     ];
 
-    updatePlacedFurnitureById(selectedFurniture.id, { rotation: newPosition });
+    updatePlacedFurnitureById(selectedFurniture.id, { rotation: newRotation });
   };
 
   const handleDeletedPlacedFurniture = () => {
@@ -136,7 +176,7 @@ const PlacedFurnitureActions = () => {
                 handleRotatePlacedFurniture(-Math.PI / 8);
               }}
             >
-              <RotateCcwIcon className="w-4 h-4" />
+              <RotateCcwIcon className="w-4 h-4 transform-[rotateX(-50deg)] transform-3d" />
             </Button>
 
             {/* rotate right */}
@@ -149,7 +189,7 @@ const PlacedFurnitureActions = () => {
                 handleRotatePlacedFurniture(Math.PI / 8);
               }}
             >
-              <RotateCwIcon className="w-4 h-4" />
+              <RotateCwIcon className="w-4 h-4 transform-[rotateX(-50deg)] transform-3d" />
             </Button>
 
             {/* delete */}

@@ -6,11 +6,11 @@ interface Notification {
   state: "info" | "error" | "success";
 }
 
-interface NotificationStore {
+type NotificationStore = {
   notifications: Notification[];
   addNotification: (notification: Notification) => void;
   removeNotification: (id: number) => void;
-}
+};
 
 const useNotification = create<NotificationStore>((set) => ({
   notifications: [],
