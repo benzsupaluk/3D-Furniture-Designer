@@ -1,30 +1,6 @@
 import { PlacedFurniture } from "@/types/interactive";
-import { Dimension, Coordinate } from "@/types/common";
-
-export interface BoundingBox {
-  minX: number;
-  maxX: number;
-  minY: number;
-  maxY: number;
-  minZ: number;
-  maxZ: number;
-}
-
-const getBoundingBox = (
-  position: Coordinate,
-  dimension: Dimension
-): BoundingBox => {
-  const [x, y, z] = position;
-
-  return {
-    minX: x - dimension.width / 2,
-    maxX: x + dimension.width / 2,
-    minY: y - dimension.height / 2,
-    maxY: y + dimension.height / 2,
-    minZ: z - dimension.depth / 2,
-    maxZ: z + dimension.depth / 2,
-  };
-};
+import { Coordinate } from "@/types/common";
+import { getBoundingBox } from "./model";
 
 export const isFurnitureValidPosition = (
   newPosition: Coordinate,
@@ -32,13 +8,12 @@ export const isFurnitureValidPosition = (
   furnitureList: PlacedFurniture[]
 ): boolean => {
   // get bounding box of current box with new position
-  const currentBox = getBoundingBox(newPosition, furniture.dimension);
-  console.log("check");
+  const currentBox = getBoundingBox(newPosition, furniture.dimensions);
   // check if any other box is overlapping with current box
   for (const otherFurniture of furnitureList) {
     const otherBox = getBoundingBox(
       otherFurniture.position,
-      otherFurniture.dimension
+      otherFurniture.dimensions
     );
     if (
       currentBox.minX < otherBox.maxX &&
@@ -54,10 +29,10 @@ export const isFurnitureValidPosition = (
 
   // check room boundaries
   const roomBoundary = {
-    minX: -4.5,
-    maxX: 4.5,
-    minZ: -4.5,
-    maxZ: 4.5,
+    minX: -5,
+    maxX: 5,
+    minZ: -4.75,
+    maxZ: 4.75,
   };
   if (
     currentBox.minX < roomBoundary.minX ||

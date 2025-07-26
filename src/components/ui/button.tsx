@@ -33,6 +33,7 @@ const buttonVariants = cva(
       },
       size: {
         default: "py-2.5 px-4 font-semibold",
+        xs: "py-1.5 px-2.5 text-xs font-semibold",
         sm: "py-2 px-3 text-sm font-semibold",
         lg: "py-4 px-[22px] text-lg font-semibold",
         icon: "p-2",

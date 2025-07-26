@@ -1,10 +1,13 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import { Group, Vector2, Vector3, Plane } from "three";
+"use client";
+
+import { useEffect, useRef, useState, useCallback, Suspense } from "react";
+import { Group, Vector2, Vector3, Plane, Box3 } from "three";
 import { ThreeEvent, useThree } from "@react-three/fiber";
-import { Text, Html } from "@react-three/drei";
+import { Text, Html, useGLTF } from "@react-three/drei";
 import { PlacedFurniture } from "@/types/interactive";
 import { useDrag, useGesture } from "@use-gesture/react";
-import { Coordinate } from "@/types/common";
+import { Coordinate, Dimensions } from "@/types/common";
+
 import { isFurnitureValidPosition } from "@/utils/validator";
 
 import { useSimulatorStore } from "@/stores/useSimulatorStore";
@@ -19,17 +22,15 @@ interface FurnitureModelProps {
   isSelected?: boolean;
 }
 
-export const FurnitureModel = ({
+const FurnitureModel = ({
   furniture,
   onSelect,
   onMove,
   isSelected,
 }: FurnitureModelProps) => {
-  const meshRef = useRef<Group>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [isRotationMode, setRotationMode] = useState<boolean>(false);
-  const [isRotating, setIsRotating] = useState<boolean>(false);
 
+  const meshRef = useRef<Group>(null);
   const tempPosition = useRef<Coordinate>(furniture.position);
 
   // Stores the 3D point on the floor where the drag initially started
@@ -37,6 +38,17 @@ export const FurnitureModel = ({
   // Stores the furniture's 3D position when the drag initially started
   const initialFurniturePosition = useRef<Vector3 | null>(null);
 
+  const { scene: furnitureScene } = furniture?.modelPath
+    ? useGLTF(furniture.modelPath)
+    : { scene: null };
+  // Clone the scene to avoid sharing the same 3D object instance between components
+  const clonedScene = useRef<Group | null>(null);
+
+  useEffect(() => {
+    if (furnitureScene && !clonedScene.current) {
+      clonedScene.current = furnitureScene.clone();
+    }
+  }, [furnitureScene]);
   const { camera, size, raycaster, invalidate } = useThree();
   const { scene } = useSimulatorStore();
 
@@ -48,34 +60,7 @@ export const FurnitureModel = ({
 
   const otherFurniture = scene.furniture.filter((f) => f.id !== furniture.id);
   const radius =
-    Math.max(furniture.dimension.width, furniture.dimension.depth) / 2 + 0.2;
-
-  // Exit rotation mode when clicking outside or pressing Escape
-  useEffect(() => {
-    if (!isRotationMode) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      // Check if click is outside the rotation controls
-      const target = event.target as HTMLElement;
-      if (!target?.closest?.(".rotation-controls")) {
-        setRotationMode(false);
-      }
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setRotationMode(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isRotationMode]);
+    Math.max(furniture.dimensions.width, furniture.dimensions.depth) / 2 + 0.2;
 
   const get3DIntersection = useCallback(
     (screenX: number, screenY: number): Vector3 | null => {
@@ -110,11 +95,6 @@ export const FurnitureModel = ({
       onDragStart: ({ event, xy: [dragX, dragY] }) => {
         event.stopPropagation();
 
-        if (isRotationMode) {
-          setIsRotating(true);
-          return;
-        }
-
         setIsDragging(true);
 
         const intersectPoint = get3DIntersection(dragX, dragY);
@@ -148,8 +128,8 @@ export const FurnitureModel = ({
             .clone()
             .sub(initialDragPoint.current);
 
-          const halfWidth = furniture.dimension.width / 2;
-          const halfDepth = furniture.dimension.depth / 2;
+          const halfWidth = furniture.dimensions.width / 2;
+          const halfDepth = furniture.dimensions.depth / 2;
           // Apply this displacement to the furniture's initial position to get the new position
           const newPosition = initialFurniturePosition.current
             .clone()
@@ -185,11 +165,6 @@ export const FurnitureModel = ({
       onDragEnd: ({ event }) => {
         event.stopPropagation(); // Stop propagation
 
-        if (isRotationMode) {
-          setIsRotating(false);
-          return;
-        }
-
         setIsDragging(false); // Reset dragging state
         initialDragPoint.current = null; // Clear initial drag point
         initialFurniturePosition.current = null; // Clear initial furniture position
@@ -200,8 +175,7 @@ export const FurnitureModel = ({
       // Triggered when a click (tap) gesture occurs without a drag
       onClick: ({ event }) => {
         event.stopPropagation();
-        if (!isDragging && !isRotating) {
-          // Only select if not currently dragging or rotating
+        if (!isDragging) {
           onSelect(furniture);
         }
       },
@@ -214,8 +188,14 @@ export const FurnitureModel = ({
     }
   );
 
+  const getRandomHexColor = (): string => {
+    const hex = Math.floor(Math.random() * 0xffffff).toString(16);
+    return `#${hex.padStart(6, "0")}`;
+  };
+
   const renderGeometry = () => {
-    const { width, height, depth } = furniture.dimension;
+    const { width, height, depth } = furniture.dimensions;
+    const color = furniture.color;
 
     switch (furniture.type) {
       case "chair":
@@ -224,29 +204,29 @@ export const FurnitureModel = ({
             {/* Seat */}
             <mesh position={[0, height * 0.4, 0]}>
               <boxGeometry args={[width, height * 0.1, depth]} />
-              <meshLambertMaterial color={furniture.color} />
+              <meshLambertMaterial color={color} />
             </mesh>
             {/* Backrest */}
             <mesh position={[0, height * 0.7, -depth * 0.35]}>
               <boxGeometry args={[width, height * 0.6, depth * 0.1]} />
-              <meshLambertMaterial color={furniture.color} />
+              <meshLambertMaterial color={color} />
             </mesh>
             {/* Legs */}
             <mesh position={[-width / 3, height * 0.2, -depth / 3]}>
               <boxGeometry args={[0.05, height * 0.4, 0.05]} />
-              <meshLambertMaterial color={furniture.color} />
+              <meshLambertMaterial color={color} />
             </mesh>
             <mesh position={[width / 3, height * 0.2, -depth / 3]}>
               <boxGeometry args={[0.05, height * 0.4, 0.05]} />
-              <meshLambertMaterial color={furniture.color} />
+              <meshLambertMaterial color={color} />
             </mesh>
             <mesh position={[-width / 3, height * 0.2, depth / 3]}>
               <boxGeometry args={[0.05, height * 0.4, 0.05]} />
-              <meshLambertMaterial color={furniture.color} />
+              <meshLambertMaterial color={color} />
             </mesh>
             <mesh position={[width / 3, height * 0.2, depth / 3]}>
               <boxGeometry args={[0.05, height * 0.4, 0.05]} />
-              <meshLambertMaterial color={furniture.color} />
+              <meshLambertMaterial color={color} />
             </mesh>
           </group>
         );
@@ -257,24 +237,24 @@ export const FurnitureModel = ({
             {/* Top */}
             <mesh position={[0, height * 0.9, 0]}>
               <boxGeometry args={[width, height * 0.1, depth]} />
-              <meshLambertMaterial color={furniture.color} />
+              <meshLambertMaterial color={color} />
             </mesh>
             {/* Legs */}
             <mesh position={[-width * 0.4, height * 0.4, -depth * 0.4]}>
               <boxGeometry args={[0.08, height * 0.8, 0.08]} />
-              <meshLambertMaterial color={furniture.color} />
+              <meshLambertMaterial color={color} />
             </mesh>
             <mesh position={[width * 0.4, height * 0.4, -depth * 0.4]}>
               <boxGeometry args={[0.08, height * 0.8, 0.08]} />
-              <meshLambertMaterial color={furniture.color} />
+              <meshLambertMaterial color={color} />
             </mesh>
             <mesh position={[-width * 0.4, height * 0.4, depth * 0.4]}>
               <boxGeometry args={[0.08, height * 0.8, 0.08]} />
-              <meshLambertMaterial color={furniture.color} />
+              <meshLambertMaterial color={color} />
             </mesh>
             <mesh position={[width * 0.4, height * 0.4, depth * 0.4]}>
               <boxGeometry args={[0.08, height * 0.8, 0.08]} />
-              <meshLambertMaterial color={furniture.color} />
+              <meshLambertMaterial color={color} />
             </mesh>
           </group>
         );
@@ -285,21 +265,21 @@ export const FurnitureModel = ({
             {/* Main body */}
             <mesh position={[0, height * 0.5, 0]}>
               <boxGeometry args={[width, height * 0.6, depth]} />
-              <meshLambertMaterial color={furniture.color} />
+              <meshLambertMaterial color={color} />
             </mesh>
             {/* Backrest */}
             <mesh position={[0, height * 0.8, -depth * 0.3]}>
               <boxGeometry args={[width, height * 0.6, depth * 0.4]} />
-              <meshLambertMaterial color={furniture.color} />
+              <meshLambertMaterial color={color} />
             </mesh>
             {/* Arms */}
             <mesh position={[-width * 0.4, height * 0.6, 0]}>
               <boxGeometry args={[width * 0.2, height * 0.4, depth * 0.8]} />
-              <meshLambertMaterial color={furniture.color} />
+              <meshLambertMaterial color={color} />
             </mesh>
             <mesh position={[width * 0.4, height * 0.6, 0]}>
               <boxGeometry args={[width * 0.2, height * 0.4, depth * 0.8]} />
-              <meshLambertMaterial color={furniture.color} />
+              <meshLambertMaterial color={color} />
             </mesh>
           </group>
         );
@@ -309,7 +289,7 @@ export const FurnitureModel = ({
           <mesh>
             <boxGeometry args={[width, height, depth]} />
             <meshLambertMaterial
-              color={furniture.color}
+              color={color}
               transparent
               opacity={isSelected ? 0.8 : 1}
             />
@@ -319,45 +299,72 @@ export const FurnitureModel = ({
   };
 
   return (
-    <group
-      ref={meshRef}
-      position={tempPosition.current}
-      rotation={furniture.rotation}
-      {...bind()}
-    >
-      {renderGeometry()}
+    <>
+      <group
+        ref={meshRef}
+        position={tempPosition.current}
+        rotation={furniture.rotation}
+        {...bind()}
+      >
+        <Text
+          key={furniture.name}
+          position={[0, furniture.dimensions.height + 1, 0]}
+          fontSize={0.2}
+          color={"#475467"}
+          anchorX="center"
+          anchorY="middle"
+        >
+          {furniture.name}
+        </Text>
 
-      {/* selection outline */}
-      {isSelected && (
-        <>
-          {/* Spotlight above the selected furniture */}
-          <spotLight
-            position={[0, furniture.dimension.height + 2, 0]}
-            angle={0.5}
-            penumbra={0.7}
-            intensity={1.5}
-            distance={6}
-            castShadow={false}
-            color={"#fffbe6"}
+        {furniture.modelPath && furnitureScene ? (
+          <primitive
+            object={clonedScene.current || furnitureScene}
+            scale={furniture.scale}
           />
-          {/* Glow ring on the floor below the selected furniture */}
-          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
-            <ringGeometry args={[radius * 0.9, radius * 1.1, 32]} />
-            <meshBasicMaterial color="#DC6803" transparent opacity={0.5} />
-          </mesh>
-          {/* Existing selection outline */}
-          <mesh>
+        ) : (
+          renderGeometry()
+        )}
+
+        {/* selection outline */}
+        {isSelected && (
+          <>
+            {/* Spotlight above the selected furniture */}
+            <spotLight
+              position={[0, furniture.dimensions.height + 0.7, 0]}
+              angle={0.5}
+              penumbra={0.7}
+              intensity={5}
+              distance={6}
+              castShadow={false}
+              color={"#fffbe6"}
+            />
+            {/* Glow ring on the floor below the selected furniture */}
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.2, 0]}>
+              <ringGeometry args={[radius * 1.2, radius * 1.5, 32]} />
+              <meshBasicMaterial color="#000000" transparent opacity={0.5} />
+            </mesh>
+            {/* Diamond shape indicator on top */}
+            <mesh position={[0, furniture.dimensions.height + 1, 0]}>
+              <octahedronGeometry args={[0.3, 0]} />
+              <meshBasicMaterial color="#0543f5" transparent opacity={0.8} />
+            </mesh>
+            {/* Existing selection outline */}
+            {/* <mesh>
             <boxGeometry
               args={[
-                furniture.dimension.width + 0.1,
-                (furniture.dimension.height + 0.1) / 2,
-                furniture.dimension.depth + 0.1,
+                furniture.dimensions.width + 0.1,
+                (furniture.dimensions.height + 0.1) / 2,
+                furniture.dimensions.depth + 0.1,
               ]}
             />
             <meshBasicMaterial color="#000000" wireframe opacity={1} />
-          </mesh>
-        </>
-      )}
-    </group>
+          </mesh> */}
+          </>
+        )}
+      </group>
+    </>
   );
 };
+
+export default FurnitureModel;

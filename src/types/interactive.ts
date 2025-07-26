@@ -1,5 +1,5 @@
 import { Furniture } from "./room";
-import { Coordinate } from "./common";
+import { Coordinate, Dimensions } from "./common";
 
 export type CameraView = "top" | "side" | "front" | "orbit";
 
@@ -21,4 +21,5 @@ export interface PlacedFurniture extends Furniture {
   position: Coordinate;
   rotation: Coordinate;
   scale: Coordinate;
+  dimensions: Dimensions;
 }

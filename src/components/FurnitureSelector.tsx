@@ -12,14 +12,20 @@ import {
   PanelLeftCloseIcon,
   XIcon,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import { useSimulatorStore } from "@/stores/useSimulatorStore";
-import { RoomCategory } from "@/types/room";
+import { RoomCategory, Furniture } from "@/types/room";
 import { PlacedFurniture } from "@/types/interactive";
-import { Furniture } from "@/types/room";
+import { Dimensions } from "@/types/common";
 
 import { Button } from "./ui/button";
 import { isFurnitureValidPosition } from "@/utils/validator";
+import { getDefaultDimensions } from "@/utils/model";
 
 const FurnitureSelector = () => {
   const [selectedCategory, setSelectedCategory] = useState<RoomCategory | null>(
@@ -36,13 +42,20 @@ const FurnitureSelector = () => {
 
   const placedFurnitureList = scene.furniture;
 
-  const handleAddFurnitureToScene = (furniture: Furniture) => {
+  const handleAddFurnitureToScene = async (furniture: Furniture) => {
+    // pre-load model and get dimensions
+    let dimensions: Dimensions | null = getDefaultDimensions(furniture.type);
+    const color = furniture.color || getRandomHexColor();
+
     const placeFurniture: PlacedFurniture = {
       ...furniture,
       position: [0, 0, 0],
       rotation: [0, 0, 0],
       scale: [1, 1, 1],
+      dimensions: dimensions || { width: 1, height: 1, depth: 1 },
+      ...(!furniture.modelPath && { color: color }),
     };
+
     // check collision
     if (
       isFurnitureValidPosition(
@@ -77,6 +90,11 @@ const FurnitureSelector = () => {
         console.log("cannot find any space");
       }
     }
+  };
+
+  const getRandomHexColor = (): string => {
+    const hex = Math.floor(Math.random() * 0xffffff).toString(16);
+    return `#${hex.padStart(6, "0")}`;
   };
 
   return (
@@ -131,7 +149,7 @@ const FurnitureSelector = () => {
                       alt={category.name}
                       src={category.imageUrl}
                       fill={true}
-                      className="object-cover w-full rounded-lg group-hover:scale-110 transition-all duration-300 opacity-80 group-hover:opacity-100"
+                      className="object-cover mx-auto w-full rounded-lg group-hover:scale-110 transition-all duration-300 opacity-80 group-hover:opacity-100"
                       priority={true}
                       sizes="(max-width: 768px) 100vw, 50vw"
                     />
@@ -160,39 +178,57 @@ const FurnitureSelector = () => {
               <h4 className="font-semibold">
                 {selectedCategory.name} furniture
               </h4>
+              <span className="text-sm text-gray-500">
+                {selectedCategory.furniture.length} item
+                {selectedCategory.furniture.length > 1 ? "s" : ""}
+              </span>
             </header>
             {/* Furniture */}
             <section className="grow overflow-auto">
-              <div className="flex flex-wrap gap-3 md:p-3 p-2">
+              <div className="grid grid-cols-2 gap-3 md:p-3 p-2">
                 {selectedCategory.furniture.map((furniture) => {
-                  const isSelected = placedFurnitureList.some(
-                    (f) => f.id === furniture.id
-                  );
                   return (
                     <AnimatePresence key={furniture.id} mode="wait">
-                      <motion.button
-                        type="button"
-                        key={furniture.id}
-                        initial={{ y: 10, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: -10, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="rounded cursor-pointer h-[100px] w-[100px] flex flex-col border border-gray-300 hover:border-primary-600 overflow-hidden p-1 hover:ring-4 ring-primary-600"
-                        onClick={() => {
-                          if (isSelected) {
-                            removeFurnitureFromScene(furniture.id);
-                            return;
-                          }
-                          handleAddFurnitureToScene(furniture);
-                        }}
-                      >
-                        {/* Image */}
-                        <div className="grow"></div>
-                        {/* Name */}
-                        <span className="text-sm font-medium">
-                          {furniture.name}
-                        </span>
-                      </motion.button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <motion.button
+                            type="button"
+                            key={furniture.id}
+                            initial={{ y: 10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: -10, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className={cn(
+                              "rounded cursor-pointer h-40 w-full flex flex-col border-gray-300 gap-2 border hover:border-primary-600 overflow-hidden p-1 hover:ring-4 ring-primary-600"
+                            )}
+                            onClick={() => {
+                              handleAddFurnitureToScene(furniture);
+                            }}
+                          >
+                            {/* Image */}
+                            <div className="grow overflow-hidden bg-gray-100 rounded-sm p-1">
+                              {furniture.previewImage && (
+                                <Image
+                                  alt={furniture.name}
+                                  src={furniture.previewImage}
+                                  width={100}
+                                  height={100}
+                                  className="object-contain h-25 w-auto"
+                                />
+                              )}
+                            </div>
+                            {/* Name */}
+                            <span className="text-xs font-medium h-6 flex items-center justify-center text-center line-clamp-2">
+                              {furniture.name}
+                            </span>
+                          </motion.button>
+                        </TooltipTrigger>
+                        <TooltipContent className="space-y-0.5 text-xs text-gray-500 max-w-40">
+                          <p className="font-semibold">{furniture.name}</p>
+                          <hr />
+                          <p>{furniture.description}</p>
+                        </TooltipContent>
+                      </Tooltip>
                     </AnimatePresence>
                   );
                 })}

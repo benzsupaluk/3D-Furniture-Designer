@@ -78,7 +78,6 @@ export const useSimulatorStore = create<SimulatorState>((set) => ({
       scene: {
         ...state.scene,
         furniture: state.scene.furniture.map((f) => {
-          console.log("found", f.id, furnitureId, f.id === furnitureId);
           return f.id === furnitureId ? { ...f, ...updates } : f;
         }),
       },

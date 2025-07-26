@@ -37,7 +37,7 @@ const RoomSimulator = () => {
   );
 
   return (
-    <group>
+    <group position={[0, -0.1, 0]}>
       {/* Floor */}
       <mesh
         receiveShadow

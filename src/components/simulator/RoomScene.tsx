@@ -1,6 +1,7 @@
 "use client";
 
-import { Suspense, useRef } from "react";
+import dynamic from "next/dynamic";
+import { Suspense, useRef, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import {
   OrbitControls,
@@ -15,8 +16,12 @@ import { PerspectiveCamera as ThreeCamera } from "three";
 import { useSimulatorStore } from "@/stores/useSimulatorStore";
 
 import RoomSimulator from "@/components/simulator/RoomSimulator";
-import { FurnitureModel } from "../3d/FunitureModel";
 import { isFurnitureValidPosition } from "@/utils/validator";
+
+const FurnitureModel = dynamic(() => import("@/components/3d/FunitureModel"), {
+  ssr: false,
+  loading: () => <></>,
+});
 
 const RoomScene = () => {
   const cameraRef = useRef<ThreeCamera>(null);
@@ -51,6 +56,36 @@ const RoomScene = () => {
     }
   };
 
+  useEffect(() => {
+    if (!cameraRef.current || !controlsRef.current) return;
+
+    const camera = cameraRef.current;
+    const controls = controlsRef.current;
+
+    switch (cameraView) {
+      case "top":
+        camera.position.set(0, 15, 0);
+        camera.lookAt(0, 0, 0);
+        // controls.enabled = false;
+        break;
+      case "side":
+        camera.position.set(15, 5, 0);
+        camera.lookAt(0, 0, 0);
+        // controls.enabled = false;
+        break;
+      case "front":
+        camera.position.set(0, 5, 15);
+        camera.lookAt(20, 0, 5);
+        break;
+      case "orbit":
+        camera.position.set(8, 8, 8);
+        camera.lookAt(0, 0, 0);
+        // controls.enabled = true;
+        break;
+    }
+    controls.update();
+  }, [cameraView]);
+
   const isEnableOrbitControls = !selectedFurnitureId;
 
   return (
@@ -58,9 +93,9 @@ const RoomScene = () => {
       <PerspectiveCamera
         ref={cameraRef}
         makeDefault
-        fov={75}
+        fov={60}
         near={0.1}
-        far={1000}
+        far={500}
         position={[5, 8, 12]}
       />
       <OrbitControls
@@ -86,8 +121,8 @@ const RoomScene = () => {
       {/* Light */}
       <ambientLight intensity={1.2} color="#ffffff" />
       <directionalLight
-        position={[10, 10, 5]}
-        intensity={1.2}
+        position={[2, 5, 5]}
+        intensity={10}
         color="#fff"
         castShadow
         shadow-mapSize-width={2048}
@@ -98,20 +133,22 @@ const RoomScene = () => {
         shadow-camera-top={10}
         shadow-camera-bottom={-10}
       />
-      <pointLight position={[-10, 10, -10]} intensity={0.5} color="#ffffff" />
+      <pointLight position={[-10, 10, -10]} intensity={12} color="#ffffff" />
       <Suspense fallback={null}>
         <RoomSimulator />
       </Suspense>
 
       {scene.furniture.map((furniture) => {
         return (
-          <FurnitureModel
-            key={furniture.id}
-            furniture={furniture}
-            onSelect={handleSelectPlacedFurniture}
-            onMove={handleMovePlacedFurniture}
-            isSelected={selectedFurnitureId === furniture.id}
-          />
+          <Suspense key={furniture.id}>
+            <FurnitureModel
+              key={furniture.id}
+              furniture={furniture}
+              onSelect={handleSelectPlacedFurniture}
+              onMove={handleMovePlacedFurniture}
+              isSelected={selectedFurnitureId === furniture.id}
+            />
+          </Suspense>
         );
       })}
     </Canvas>

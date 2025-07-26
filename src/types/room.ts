@@ -1,14 +1,22 @@
-import { Dimension } from "./common";
+import { Dimensions } from "./common";
+
+export type FurnitureType =
+  | "chair"
+  | "table"
+  | "sofa"
+  | "bed"
+  | "cabinet"
+  | "desk";
 
 export type Furniture = {
   id: string;
-  type?: string;
+  type?: FurnitureType;
   name: string;
   description?: string;
   categoryId: string;
-  modelPath: string;
-  dimension: Dimension;
   color?: string;
+  modelPath?: string;
+  previewImage?: string;
 };
 
 export type RoomCategory = {

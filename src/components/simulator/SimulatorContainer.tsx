@@ -9,12 +9,17 @@ import { useSimulatorStore } from "@/stores/useSimulatorStore";
 import { cn } from "@/lib/utils";
 import { isFurnitureValidPosition } from "@/utils/validator";
 
-import { PlacedFurniture } from "@/types/interactive";
+import { CameraView, PlacedFurniture } from "@/types/interactive";
 import { Coordinate } from "@/types/common";
 
 import * as motion from "motion/react-client";
 import { AnimatePresence } from "motion/react";
-import { TrashIcon, RotateCwIcon, RotateCcwIcon } from "lucide-react";
+import {
+  TrashIcon,
+  RotateCwIcon,
+  RotateCcwIcon,
+  SwitchCameraIcon,
+} from "lucide-react";
 
 const RoomScene = dynamic(() => import("@/components/simulator/RoomScene"), {
   ssr: false,
@@ -23,23 +28,61 @@ const RoomScene = dynamic(() => import("@/components/simulator/RoomScene"), {
 
 const SimulatorContainer = ({ className }: { className?: string }) => {
   return (
-    <section
-      style={{
-        backgroundImage:
-          "radial-gradient(circle, #d1d5db 1px, transparent 1px)",
-        backgroundSize: "20px 20px",
-      }}
-      className={cn(
-        "relative border rounded-lg border-primary-300 overflow-hidden",
-        className
-      )}
-    >
-      <RoomScene />
-      {/* Placed furniture action */}
-      <PlacedFurnitureActions />
-      {/* Placed furniture label */}
-      <ActivePlacedFurnitureCard />
-    </section>
+    <>
+      <section
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, #d1d5db 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
+        }}
+        className={cn(
+          "relative border rounded-lg border-primary-300 overflow-hidden",
+          className
+        )}
+      >
+        <RoomScene />
+        <SimulatorHeader />
+        {/* Placed furniture action */}
+        <PlacedFurnitureActions />
+        {/* Placed furniture label */}
+        <ActivePlacedFurnitureCard />
+      </section>
+    </>
+  );
+};
+
+const SimulatorHeader = () => {
+  return (
+    <div className="absolute top-2 right-2 p-2 rounded-lg bg-primary-50/70">
+      <CameraControls />
+    </div>
+  );
+};
+
+const CameraControls = () => {
+  const CAMERA_CONTROL_LIST: CameraView[] = ["top", "side", "front", "orbit"];
+  const { setCameraView } = useSimulatorStore();
+  return (
+    <div className="flex items-center gap-3">
+      <SwitchCameraIcon className="size-6 text-primary-700" />
+      <ul className="flex flex-wrap gap-2">
+        {CAMERA_CONTROL_LIST.map((view, index) => {
+          return (
+            <li key={index}>
+              <Button
+                type="button"
+                variant={"outline"}
+                className="text-xs"
+                size={"xs"}
+                onClick={() => setCameraView(view)}
+              >
+                {view}
+              </Button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 };
 
@@ -55,7 +98,6 @@ const PlacedFurnitureActions = () => {
     scene?.furniture?.find((f) => f.id === selectedFurnitureId) || null;
 
   const handleRotatePlacedFurniture = (delta: number) => {
-    console.log("clcik", selectedFurniture);
     if (!selectedFurniture) return;
     const newY = selectedFurniture.rotation[1] + delta;
     const newPosition: Coordinate = [
@@ -63,7 +105,7 @@ const PlacedFurnitureActions = () => {
       newY,
       selectedFurniture.rotation[2],
     ];
-    console.log("newPosition", newPosition);
+
     updatePlacedFurnitureById(selectedFurniture.id, { rotation: newPosition });
   };
 
@@ -80,7 +122,7 @@ const PlacedFurnitureActions = () => {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -10, opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="absolute top-1/2 -translate-y-1/2 right-2 flex flex-col gap-2"
+            className="absolute top-1/2 -translate-y-1/2 right-2 flex flex-col gap-2 object-action"
           >
             {/* rotate left */}
             <Button
