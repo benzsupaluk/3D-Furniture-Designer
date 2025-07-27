@@ -9,13 +9,11 @@ import {
   PerspectiveCamera,
 } from "@react-three/drei";
 
-import * as THREE from "three";
 import { PlacedFurniture } from "@/types/interactive";
 import { Coordinate } from "@/types/common";
 
 import { PerspectiveCamera as ThreeCamera, WebGLRenderer } from "three";
 import { useSimulatorStore } from "@/stores/useSimulatorStore";
-import { useCanvasCaptureStore } from "@/stores/useCanvasCaptureStore";
 
 import RoomSimulator from "@/components/simulator/RoomSimulator";
 import { isFurnitureValidPosition } from "@/utils/validator";
@@ -113,7 +111,8 @@ const RoomScene = () => {
       onCreated={({ gl }) => {
         glRef.current = gl;
       }}
-      gl={{ preserveDrawingBuffer: true }}
+      gl={{ preserveDrawingBuffer: true, toneMappingExposure: 1.0 }}
+      shadows
       onPointerMissed={handlePointerMissed}
     >
       <PerspectiveCamera
@@ -133,37 +132,31 @@ const RoomScene = () => {
         dampingFactor={0.05}
         maxPolarAngle={Math.PI / 2}
       />
-
-      {/* Bulb light above the room */}
-      {/* <pointLight
-        position={[0, 5, 0]}
-        intensity={2}
-        color="#ffffff"
-        distance={15}
-        decay={2}
-        castShadow
-      /> */}
-
       {/* Light */}
-      <ambientLight intensity={1.2} color="#ffffff" />
+      <ambientLight intensity={4} color="#ffffff" />
       <directionalLight
         position={[2, 5, 5]}
-        intensity={10}
+        intensity={3}
         color="#fff"
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
         shadow-camera-far={50}
-        shadow-camera-left={-10}
+        shadow-camera-left={-5}
         shadow-camera-right={10}
         shadow-camera-top={10}
         shadow-camera-bottom={-10}
       />
-      <pointLight position={[-10, 10, -10]} intensity={12} color="#ffffff" />
+      <pointLight
+        position={[-3, 8, 3]}
+        intensity={0.1}
+        color="#ffffff"
+        distance={20}
+        decay={2}
+      />
       <Suspense fallback={null}>
         <RoomSimulator />
       </Suspense>
-
       {scene.furniture.map((furniture) => {
         return (
           <Suspense key={furniture.id}>

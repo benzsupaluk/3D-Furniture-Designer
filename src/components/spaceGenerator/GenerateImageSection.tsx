@@ -30,8 +30,6 @@ import {
   ChevronDown,
   ChevronLeftCircleIcon,
   ChevronRightCircleIcon,
-  DownloadIcon,
-  Share2Icon,
 } from "lucide-react";
 
 const GenerateImageSection = ({ className }: { className?: string }) => {
@@ -48,44 +46,47 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
   const { gl, camera, scene, setImageDataUrl } = useCanvasCaptureStore();
   const { addNotification } = useNotificationStore();
 
+  const setLabelsVisibility = (visible: boolean) => {
+    scene?.traverse((object) => {
+      if (object.name.startsWith("label:")) {
+        object.visible = visible;
+      }
+    });
+  };
+
   const handleCapture = async () => {
     if (!gl || !camera || !scene) return;
-
-    console.log("click");
-
+    setLabelsVisibility(false);
     const originalPos = camera.position.clone();
     const originalRot = camera.rotation.clone();
     const originalSize = gl.getSize(new Vector2());
     const originalPixelRatio = gl.getPixelRatio();
 
-    // Force front view
-    camera.position.set(0, 10, 15);
-    camera.lookAt(0, 0, 0);
+    const perspectiveCamera = camera as PerspectiveCamera;
+    const originalFov = perspectiveCamera.fov;
+
+    const scaleFactor = 1;
+    const newWidth = originalSize.x * scaleFactor;
+    const newHeight = originalSize.y * scaleFactor;
+
+    gl.setSize(newWidth, newHeight, false);
+    gl.setPixelRatio(originalPixelRatio * scaleFactor);
+
+    camera.position.set(0, 3, 9);
+    camera.lookAt(0, 2, 0);
 
     gl.render(scene, camera);
 
-    // gl.domElement.toBlob((blob) => {
-    //   console.log("blob");
-    //   if (blob) {
-    //     const imageUrl = URL.createObjectURL(blob);
-    //     console.log("imageUrl", imageUrl);
-    //     setImageDataUrl(imageUrl);
-
-    //     setOpenConfirmationModal(true);
-    //   }
-
-    //   gl.setSize(originalSize.x, originalSize.y, false);
-    //   gl.setPixelRatio(originalPixelRatio);
-    //   camera.position.copy(originalPos);
-    //   camera.rotation.copy(originalRot);
-    // }, "image/png");
     const imageData = gl.domElement.toDataURL("image/png");
     setImageDataUrl(imageData);
 
-    // gl.setSize(originalSize.x, originalSize.y, false);
-    // gl.setPixelRatio(originalPixelRatio);
+    gl.setSize(originalSize.x, originalSize.y, false);
+    gl.setPixelRatio(originalPixelRatio);
     camera.position.copy(originalPos);
     camera.rotation.copy(originalRot);
+    perspectiveCamera.fov = originalFov;
+    perspectiveCamera.updateProjectionMatrix();
+    setLabelsVisibility(true);
 
     if (imageData) {
       setOpenConfirmationModal(true);
@@ -114,6 +115,7 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
 
   useEffect(() => {
     if (!refId) return;
+    setErrorState(false);
 
     const abortController = new AbortController();
 
@@ -143,9 +145,8 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
           setPoolResult(responseData?.data);
 
           const status = responseData?.data?.status;
-          console.log("status", responseData);
+
           if (status === "failed" || status === "success") {
-            console.log("clear--------");
             alreadyUploaded = true;
             clearState();
           }
@@ -184,9 +185,9 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
 
   const generateButton = (
     <Button
-      className="ml-auto"
+      className="ml-auto mb-0.5"
       onClick={handleCapture}
-      variant={poolResult?.result ? "ghost" : "default"}
+      variant={poolResult?.result ? "ghost-secondary" : "default"}
       disabled={poolResult?.status === "processing"}
     >
       {poolResult?.result ? <RefreshCwIcon /> : <SparklesIcon />}
@@ -365,30 +366,6 @@ const DisplayImageModal = ({
           <DialogDescription></DialogDescription>
         </DialogHeader>
         <DialogBody className="px-2 relative ">
-          {/* <div className="ml-auto flex items-center gap-4">
-            <Button
-              aria-label="Share image"
-              className="ml-auto hover:scale-110"
-              variant={"link"}
-              size={"sm"}
-            >
-              <Share2Icon className="size-4" />
-            </Button>
-            <Button
-              aria-label="Download image"
-              className="ml-auto hover:scale-110"
-              variant={"link"}
-              size={"sm"}
-              onClick={() =>
-                handleDownloadImage(
-                  imageUrl,
-                  `generated-image-${currentIndex}.png`
-                )
-              }
-            >
-              <DownloadIcon className="size-4" />
-            </Button>
-          </div> */}
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={imageUrl}
@@ -400,9 +377,9 @@ const DisplayImageModal = ({
               <Image
                 alt={`Image ${currentIndex + 1}`}
                 src={imageUrl}
-                width={400}
-                height={400}
-                className="object-contain w-[calc(100svw_-_200px)] 2xl:h-[650px] xl:h-[550px] md:h-[450px] h-[300px] data-[loaded=false]:animate-pulse data-[loaded=false]:bg-gray-100/10"
+                width={640}
+                height={640}
+                className="object-contain xl:h-[640px] md:h-[600px] sm:h-[550px] h-[500px] data-[loaded=false]:animate-pulse data-[loaded=false]:bg-gray-100/10"
                 data-loaded="false"
                 onLoad={(event) => {
                   event.currentTarget.setAttribute("data-loaded", "true");

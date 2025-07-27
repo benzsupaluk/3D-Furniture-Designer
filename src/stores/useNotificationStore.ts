@@ -4,7 +4,7 @@ import { nanoid } from "nanoid";
 interface Notification {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   state: "info" | "error" | "success";
 }
 

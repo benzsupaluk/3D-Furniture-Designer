@@ -1,6 +1,7 @@
 import { Dimensions } from "@/types/common";
 import { useState, useEffect } from "react";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { getDefaultFurnitureInfo } from "@/utils";
 import { Box3, Vector3 } from "three";
 
 interface ModelData {
@@ -66,7 +67,10 @@ class ModelPreloader {
             this.loadingPromises.delete(modelPath);
             resolve(modelData);
           } catch (error) {
-            console.error(`Error calculating dimensions for ${modelPath}:`, error);
+            console.error(
+              `Error calculating dimensions for ${modelPath}:`,
+              error
+            );
             this.errorCache.add(modelPath);
             this.loadingPromises.delete(modelPath);
             reject(error);
@@ -121,33 +125,13 @@ class ModelPreloader {
     this.errorCache.clear();
   }
 
-  // Get default dimensions for furniture types
-  getDefaultDimensions(type?: string): Dimensions {
-    switch (type) {
-      case "chair":
-        return { width: 0.6, height: 0.8, depth: 0.6 };
-      case "table":
-        return { width: 1.2, height: 0.8, depth: 0.8 };
-      case "sofa":
-        return { width: 2.0, height: 0.8, depth: 0.9 };
-      case "bed":
-        return { width: 1.6, height: 0.6, depth: 2.0 };
-      case "cabinet":
-        return { width: 1.0, height: 2.0, depth: 0.5 };
-      case "desk":
-        return { width: 1.5, height: 0.75, depth: 0.8 };
-      default:
-        return { width: 1.0, height: 1.0, depth: 1.0 };
-    }
-  }
-
   // Clean up unused models to prevent memory leaks
   cleanupUnusedModels(usedModelPaths: string[]): void {
     const unusedPaths = Array.from(this.cache.keys()).filter(
-      path => !usedModelPaths.includes(path)
+      (path) => !usedModelPaths.includes(path)
     );
-    
-    unusedPaths.forEach(path => {
+
+    unusedPaths.forEach((path) => {
       this.cache.delete(path);
     });
   }
@@ -177,8 +161,10 @@ export const useModelPreloader = (modelPath: string) => {
 
         // Check if this model has failed to load before
         if (modelPreloader.hasError(modelPath)) {
-          console.warn(`Model ${modelPath} has failed to load previously, using defaults`);
-          const defaultDimensions = modelPreloader.getDefaultDimensions();
+          console.warn(
+            `Model ${modelPath} has failed to load previously, using defaults`
+          );
+          const { dimensions: defaultDimensions } = getDefaultFurnitureInfo();
           setModelData({
             scene: null,
             dimensions: defaultDimensions,
@@ -194,7 +180,7 @@ export const useModelPreloader = (modelPath: string) => {
         console.error("Failed to load model:", error);
         modelPreloader.markAsFailed(modelPath);
         // Use default dimensions as fallback
-        const defaultDimensions = modelPreloader.getDefaultDimensions();
+        const { dimensions: defaultDimensions } = getDefaultFurnitureInfo();
         setModelData({
           scene: null,
           dimensions: defaultDimensions,

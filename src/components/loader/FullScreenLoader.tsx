@@ -14,7 +14,7 @@ const FullScreenLoader = () => {
         <div className="h-8 w-8 bg-secondary-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
         <div className="h-8 w-8 bg-secondary-900 rounded-full animate-bounce"></div>
       </div>
-      <div className="text-gray-700 text-lg font-medium animate-pulse">
+      <div className="text-white text-lg font-semibold animate-pulse">
         Loading...
       </div>
     </div>

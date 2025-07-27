@@ -68,7 +68,6 @@ const GenerateConfirmationModal = ({
         });
         const data = await uploadResponse.json();
         if (uploadResponse.ok) {
-          console.log("Uploaded image URL:", data.url);
           uploadedImageUrl = data.url;
         } else {
           throw new Error(data.error || "Upload to R2 failed");
@@ -94,7 +93,7 @@ const GenerateConfirmationModal = ({
         );
         if (response.ok) {
           const data = await response.json();
-          console.log(data);
+
           setRefId(data.data);
           const params = new URLSearchParams(searchParams.toString());
           params.set("refId", data.data);
@@ -103,7 +102,7 @@ const GenerateConfirmationModal = ({
           throw new Error(data.error || "Upload to space generator failed");
         }
       } catch (error) {
-        console.log(error);
+        console.error(error);
         addNotification({
           title: `Error`,
           description:
@@ -133,15 +132,14 @@ const GenerateConfirmationModal = ({
         </DialogHeader>
         <DialogBody>
           {/* screenshot */}
-          <div className="bg-gray-50 mx-auto">
+          <div className="bg-gray-50 mx-auto flex overflow-auto">
             {imageDataUrl && (
               <Image
                 alt="Room simulator"
                 src={imageDataUrl}
                 width={400}
                 height={400}
-                className="object-contain h-[400px] w-auto"
-                style={{ width: "auto", height: "400px" }}
+                className="object-contain h-[600px] max-h-[100svh_-_64px] w-[600px]"
               />
             )}
           </div>

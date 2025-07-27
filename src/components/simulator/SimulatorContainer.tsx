@@ -171,44 +171,40 @@ const PlacedFurnitureActions = () => {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -10, opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="absolute top-1/2 -translate-y-1/2 right-2 flex flex-col gap-2 object-action"
+            className="absolute top-1/2 -translate-y-1/2 right-2 flex flex-col gap-1 object-action bg-white border border-gray-300 rounded-lg p-1"
           >
-            {/* rotate left */}
+            {/* Rotate left */}
             <Button
               variant="ghost"
               size="icon"
               onClick={(event) => {
-                // event.preventDefault();
                 event.stopPropagation();
                 handleRotatePlacedFurniture(-Math.PI / 8);
-              }}
-            >
-              <RotateCcwIcon className="w-4 h-4 transform-[rotateX(-50deg)] transform-3d" />
-            </Button>
-
-            {/* rotate right */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(event) => {
-                // event.preventDefault();
-                event.stopPropagation();
-                handleRotatePlacedFurniture(Math.PI / 8);
               }}
             >
               <RotateCwIcon className="w-4 h-4 transform-[rotateX(-50deg)] transform-3d" />
             </Button>
 
-            {/* delete */}
+            {/* Rotate right */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(event) => {
+                event.stopPropagation();
+                handleRotatePlacedFurniture(Math.PI / 8);
+              }}
+            >
+              <RotateCcwIcon className="w-4 h-4 transform-[rotateX(-50deg)] transform-3d" />
+            </Button>
+            <hr />
+            {/* Delete */}
             <Button
               variant="ghost-destructive"
               size="icon"
               onClick={(event) => {
                 event.stopPropagation();
-
                 handleDeletedPlacedFurniture();
               }}
-              className="mt-2"
             >
               <TrashIcon className="w-4 h-4" />
             </Button>

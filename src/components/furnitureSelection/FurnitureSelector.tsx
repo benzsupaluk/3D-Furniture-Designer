@@ -26,7 +26,7 @@ import { modelPreloader } from "@/hooks/use-model-preloader";
 
 import { Button } from "../ui/button";
 import { isFurnitureValidPosition } from "@/utils/validator";
-import { getDefaultDimensions } from "@/utils/model";
+import { getDefaultFurnitureInfo } from "@/utils/model";
 
 const FurnitureSelector = ({ className }: { className?: string }) => {
   const [selectedCategory, setSelectedCategory] = useState<RoomCategory | null>(
@@ -48,18 +48,21 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
   const handleAddFurnitureToScene = async (furniture: Furniture) => {
     // pre-load model and get dimensions
     let dimensions: Dimensions | null = null;
+    const defaultDimensions = getDefaultFurnitureInfo(
+      furniture.type
+    ).dimensions;
     if (furniture.modelPath) {
       try {
         const modelData = await modelPreloader.preloadModel(
           furniture.modelPath
         );
+
         dimensions = modelData.dimensions;
       } catch (error) {
-        // fallback to default if preload fails
-        dimensions = getDefaultDimensions(furniture.type);
+        dimensions = defaultDimensions;
       }
     } else {
-      dimensions = getDefaultDimensions(furniture.type);
+      dimensions = defaultDimensions;
     }
     const color = furniture.color || getRandomHexColor();
 
@@ -72,7 +75,7 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
       ...(!furniture.modelPath && { color: color }),
     };
 
-    // check collision
+    // Check collision
     if (
       isFurnitureValidPosition(
         placeFurniture.position,
@@ -81,8 +84,12 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
       )
     ) {
       addFurnitureToScene(placeFurniture);
+      addNotification({
+        title: `Added ${furniture.name} to scene`,
+        state: "success",
+      });
     } else {
-      // find new position because collision occurs
+      // Find new position because collision occurs
       let validPositionFound = false;
       for (let x = -5; x <= 5 && !validPositionFound; x += 0.5) {
         for (let z = -5; z <= 5 && !validPositionFound; z += 0.5) {
@@ -96,18 +103,21 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
           ) {
             const placedItem = { ...placeFurniture, position: testPosition };
             addFurnitureToScene(placedItem);
+            addNotification({
+              title: `Added ${furniture.name} to scene`,
+              state: "success",
+            });
             validPositionFound = true;
           }
         }
       }
-      // cannot find any space
+      // Cannot find any space
       if (!validPositionFound) {
         addNotification({
           title: `Cannot add ${furniture.name} to scene`,
           description: "No space available for this furniture",
           state: "error",
         });
-        console.log("cannot find any space");
       }
     }
   };
@@ -157,7 +167,7 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
           <h4 className="font-semibold md:px-3 px-2">
             Browse furniture by room
           </h4>
-          <ul className="mt-2 flex flex-col gap-2 grow overflow-y-auto md:px-3 px-2">
+          <ul className="mt-2 flex flex-col gap-4 grow overflow-y-auto md:px-3 px-2">
             {roomCategories.map((category) => {
               return (
                 <li
@@ -210,6 +220,9 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
             <section className="grow overflow-auto">
               <div className="grid grid-cols-2 gap-3 md:p-3 p-2">
                 {selectedCategory.furniture.map((furniture) => {
+                  const imageUrl =
+                    furniture?.previewImage ||
+                    getDefaultFurnitureInfo(furniture.type).imagePreview;
                   return (
                     <AnimatePresence key={furniture.id} mode="wait">
                       <motion.button
@@ -220,7 +233,7 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
                         exit={{ y: -10, opacity: 0 }}
                         transition={{ duration: 0.2 }}
                         className={cn(
-                          "relative rounded cursor-pointer h-40 w-full flex flex-col border-gray-300 gap-2 border hover:border-primary-600 overflow-hidden p-1 hover:ring-4 ring-primary-600"
+                          "relative rounded cursor-pointer h-42 w-full flex flex-col border-gray-300 gap-2 border hover:border-primary-600 overflow-hidden p-1 hover:ring-4 ring-primary-600"
                         )}
                         onClick={() => {
                           handleAddFurnitureToScene(furniture);
@@ -237,21 +250,21 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
                           </TooltipContent>
                         </Tooltip>
                         {/* Image */}
-                        <div className="flex grow overflow-hidden bg-gray-100 rounded-sm p-1">
-                          {furniture.previewImage && (
+                        <div className="relative flex grow overflow-hidden bg-gray-100 rounded-sm p-1">
+                          {imageUrl && (
                             <Image
                               alt={furniture.name}
-                              src={furniture.previewImage}
-                              width={100}
-                              height={100}
+                              src={imageUrl}
+                              fill={true}
                               className="object-contain m-auto"
                               placeholder="blur"
                               blurDataURL="/images/placeholder.webp"
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             />
                           )}
                         </div>
                         {/* Name */}
-                        <span className="text-xs font-medium h-6 flex items-center justify-center text-center line-clamp-2">
+                        <span className="text-xs font-medium h-8 flex items-center justify-center text-center line-clamp-2">
                           {furniture.name}
                         </span>
                       </motion.button>

@@ -1,12 +1,11 @@
 import { useRef, useState, useEffect } from "react";
 import { Mesh } from "three";
-import * as THREE from "three";
+
+import { TextureLoader, MeshStandardMaterial } from "three";
 import { useThree, useFrame, useLoader } from "@react-three/fiber";
 import { useCanvasCaptureStore } from "@/stores/useCanvasCaptureStore";
 
 const RoomSimulator = () => {
-  const floorRef = useRef<Mesh>(null);
-  const wallRef = useRef<Mesh>(null);
   const leftWallRef = useRef<Mesh>(null);
   const rightWallRef = useRef<Mesh>(null);
 
@@ -19,26 +18,21 @@ const RoomSimulator = () => {
 
   useFrame(() => {
     if (leftWallRef.current) {
-      const material = leftWallRef.current
-        .material as THREE.MeshStandardMaterial;
+      const material = leftWallRef.current.material as MeshStandardMaterial;
       material.opacity = camera.position.x >= 0 ? 1 : 0;
       material.transparent = true;
     }
     if (rightWallRef.current) {
-      const material = rightWallRef.current
-        .material as THREE.MeshStandardMaterial;
+      const material = rightWallRef.current.material as MeshStandardMaterial;
       material.opacity = camera.position.x < 5 ? 1 : 0;
       material.transparent = true;
     }
   });
 
-  const woodTexture = useLoader(
-    THREE.TextureLoader,
-    "/images/textures/wood.webp"
-  );
+  const woodTexture = useLoader(TextureLoader, "/images/textures/wood.webp");
 
   const wallpaperTexture = useLoader(
-    THREE.TextureLoader,
+    TextureLoader,
     "/images/textures/wallpaper.webp"
   );
 
