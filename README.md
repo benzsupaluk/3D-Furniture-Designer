@@ -115,6 +115,29 @@ A modern, interactive 3D room design and visualization tool built with Next.js a
 - `pnpm build` - Build for production
 - `pnpm start` - Start production server
 - `pnpm lint` - Run ESLint
+- `pnpm deploy` - Build and export for static deployment
+
+## 🚀 Deployment
+
+This project is configured for automatic deployment to GitHub Pages. The deployment process is handled by GitHub Actions.
+
+### Automatic Deployment
+
+1. **Push to main branch**: Any push to the `main` branch will trigger automatic deployment
+2. **GitHub Actions**: The workflow will build and deploy your application using the "production" environment
+3. **GitHub Pages**: Your app will be available at `https://yourusername.github.io/3d-room-simulator/`
+
+### Environment Variables
+
+For production deployment, your environment variables are configured in GitHub:
+
+1. Go to your repository settings
+2. Navigate to "Environments" → "production"
+3. Your environment variables are already set up:
+   - `NEXT_PUBLIC_API_URL`
+   - `NEXT_PUBLIC_API_KEY`
+
+The deployment workflow is configured to use the "production" environment, which will have access to these secrets during the build process.
 
 ## Customization
 
