@@ -29,7 +29,7 @@ const NotificationComponent = () => {
         setLocalNotifications((prev) =>
           prev.filter((id) => id !== notificationId)
         );
-      }, 3000);
+      }, 5000);
 
       timeouts.push(timeout);
     });
@@ -38,7 +38,6 @@ const NotificationComponent = () => {
       timeouts.forEach((timeout) => clearTimeout(timeout));
     };
   }, [localNotifications, removeNotification]);
-
 
   const getIcon = (state: "info" | "error" | "success") => {
     switch (state) {

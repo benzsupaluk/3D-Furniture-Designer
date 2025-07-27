@@ -38,6 +38,7 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
   const [openConfirmationModal, setOpenConfirmationModal] =
     useState<boolean>(false);
   const [hideResult, setHideResult] = useState<boolean>(false);
+  const [errorState, setErrorState] = useState<boolean>(false);
 
   const searchParams = useSearchParams();
   const interval = useRef<NodeJS.Timeout | null>(null);
@@ -102,7 +103,14 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
     if (searchParams.get("refId") && !refId) {
       setRefId(searchParams.get("refId") as string);
     }
-  }, [searchParams, refId]);
+  }, [searchParams]);
+
+  const clearRefId = () => {
+    setRefId("");
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("refId");
+    window.history.replaceState(null, "", `?${params.toString()}`);
+  };
 
   useEffect(() => {
     if (!refId) return;
@@ -110,16 +118,12 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
     const abortController = new AbortController();
 
     const clearState = () => {
-      // const params = new URLSearchParams(searchParams.toString());
-      // params.append("status", "uploaded");
-      // window.history.replaceState(null, "", `?${params.toString()}`);
-      // setRefId("");
-
       if (interval.current) {
         clearInterval(interval.current);
         interval.current = null;
       }
     };
+
     let alreadyUploaded = false;
     const pollingResultImages = async () => {
       try {
@@ -141,18 +145,26 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
           const status = responseData?.data?.status;
           console.log("status", responseData);
           if (status === "failed" || status === "success") {
+            console.log("clear--------");
             alreadyUploaded = true;
             clearState();
           }
         } else {
-          console.log("eeeee");
-          clearState();
+          throw new Error("Upload to fetch space generator result");
         }
       } catch (err: any) {
-        console.log("error");
         if (err.name !== "AbortError") {
           console.error("Polling failed:", err);
+          alreadyUploaded = true;
           clearState();
+          setErrorState(true);
+          addNotification({
+            title: `Error: ${err.message}`,
+            description:
+              "Sorry, we are unable to get generated image from Space Generator API.",
+            state: "error",
+          });
+          clearRefId();
         }
       }
     };
@@ -169,8 +181,6 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
       clearState();
     };
   }, [refId]);
-
-  console.log("refId", refId);
 
   const generateButton = (
     <Button
@@ -315,7 +325,6 @@ const DisplayImageModal = ({
   const handlePreviousImage = () => {
     const prevIndex = currentIndex - 1;
     if (prevIndex < 0) {
-      // setDirection(1);
       setCurrentIndex(images.length - 1);
       return;
     }
@@ -325,7 +334,6 @@ const DisplayImageModal = ({
   const handleNextImage = () => {
     const nextIndex = currentIndex + 1;
     if (nextIndex >= images.length) {
-      // setDirection(-1);
       setCurrentIndex(0);
       return;
     }
