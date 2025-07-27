@@ -1,4 +1,4 @@
-import { useId, useTransition } from "react";
+import { useId, useTransition, useEffect } from "react";
 
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 
 import { useLoadingStore } from "@/stores/useLoadingStore";
 import { useCanvasCaptureStore } from "@/stores/useCanvasCaptureStore";
+import { useNotificationStore } from "@/stores/useNotificationStore";
 
 import { cn } from "@/lib/utils";
 
@@ -37,22 +38,45 @@ const GenerateConfirmationModal = ({
   const searchParams = useSearchParams();
 
   const { loadingFullScreen, setLoadingFullScreen } = useLoadingStore();
-  const { imageDataUrl } = useCanvasCaptureStore();
+  const { imageDataUrl, clearImageDataUrl } = useCanvasCaptureStore();
   const { spaceType, spaceStyle, setRefId } = useSpaceGeneratorStore();
+  const { addNotification } = useNotificationStore();
 
   const [isPending, startTransition] = useTransition();
 
   const onClose = () => {
+    clearImageDataUrl();
     setOpen(false);
   };
 
   const handleGenerateScene = () => {
+    if (!imageDataUrl) return;
+
     startTransition(async () => {
       setLoadingFullScreen(true);
+      // Upload image to R2
+      let uploadedImageUrl = "";
       try {
+        const uploadResponse = await fetch("/api/upload", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            base64: imageDataUrl,
+          }),
+        });
+        const data = await uploadResponse.json();
+        if (uploadResponse.ok) {
+          console.log("Uploaded image URL:", data.url);
+          uploadedImageUrl = data.url;
+        } else {
+          throw new Error(data.error || "Upload to R2 failed");
+        }
+
         const body = {
           model: "spacely-v1",
-          imageUrl: imageDataUrl,
+          imageUrl: uploadedImageUrl,
           spaceType: spaceType,
           spaceStyle: spaceStyle,
           renovateType: "residential",
@@ -75,9 +99,17 @@ const GenerateConfirmationModal = ({
           const params = new URLSearchParams(searchParams.toString());
           params.set("refId", data.data);
           window.history.pushState(null, "", `?${params.toString()}`);
+        } else {
+          throw new Error(data.error || "Upload to space generator failed");
         }
       } catch (error) {
         console.log(error);
+        addNotification({
+          title: `Error`,
+          description:
+            "Sorry, we are unable to generate image from canvas. Please try again.",
+          state: "error",
+        });
       } finally {
         setLoadingFullScreen(false);
         onClose();

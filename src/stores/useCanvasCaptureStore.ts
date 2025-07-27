@@ -9,13 +9,27 @@ type CanvasCaptureStore = {
   setRefs: (gl: WebGLRenderer, scene: Scene, camera: Camera) => void;
   imageDataUrl: string | null;
   setImageDataUrl: (url: string) => void;
+  clearImageDataUrl: () => void;
 };
 
-export const useCanvasCaptureStore = create<CanvasCaptureStore>((set) => ({
+export const useCanvasCaptureStore = create<CanvasCaptureStore>((set, get) => ({
   gl: null,
   scene: null,
   camera: null,
   imageDataUrl: null,
   setRefs: (gl, scene, camera) => set({ gl, scene, camera }),
-  setImageDataUrl: (url) => set({ imageDataUrl: url }),
+  setImageDataUrl: (url) => {
+    const currentUrl = get().imageDataUrl;
+    if (currentUrl) {
+      URL.revokeObjectURL(currentUrl);
+    }
+    set({ imageDataUrl: url });
+  },
+  clearImageDataUrl: () => {
+    const currentUrl = get().imageDataUrl;
+    if (currentUrl && currentUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(currentUrl);
+    }
+    set({ imageDataUrl: null });
+  },
 }));

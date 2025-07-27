@@ -18,6 +18,7 @@ export type PoolResult = {
   status: PollStatus;
   result: string[];
   webhook: string;
+  progress: number;
 };
 
 export type PoolResultResponse = {

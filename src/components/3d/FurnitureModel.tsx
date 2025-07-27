@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback, Suspense } from "react";
-import { Group, Vector2, Vector3, Plane, BoxGeometry } from "three";
+import { Group, Vector2, Vector3, Plane, BoxGeometry, Mesh } from "three";
 import { ThreeEvent, useThree } from "@react-three/fiber";
 import { Text, Html, useGLTF } from "@react-three/drei";
 import { PlacedFurniture } from "@/types/interactive";
@@ -12,9 +12,6 @@ import { modelPreloader } from "@/hooks/use-model-preloader";
 import { isFurnitureValidPosition } from "@/utils/validator";
 
 import { useSimulatorStore } from "@/stores/useSimulatorStore";
-import { Button } from "@/components/ui/button";
-
-import { RotateCcwIcon, RotateCwIcon } from "lucide-react";
 
 interface FurnitureModelProps {
   furniture: PlacedFurniture;
@@ -37,6 +34,8 @@ const FurnitureModel = ({
 }: FurnitureModelProps) => {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isScaling, setIsScaling] = useState<boolean>(false);
+
+  // const { camera, gl, scene } = useThree();
 
   const meshRef = useRef<Group>(null);
   const tempPosition = useRef<Coordinate>(furniture.position);
@@ -67,8 +66,8 @@ const FurnitureModel = ({
       clonedScene.current = furnitureScene.clone();
     }
   }, [furnitureScene]);
-  const { camera, size, raycaster, invalidate } = useThree();
-  const { scene } = useSimulatorStore();
+  const { camera, gl, size, raycaster, invalidate } = useThree();
+  const { scene: simulatorScene } = useSimulatorStore();
 
   // Define a floor plane at y=0. This is used for raycasting to determine
   // where the mouse pointer is on the floor in 3D space.
@@ -76,7 +75,9 @@ const FurnitureModel = ({
   // A temporary Vector3 to store the intersection result from raycasting
   const planeIntersectPoint = useRef(new Vector3()).current;
 
-  const otherFurniture = scene.furniture.filter((f) => f.id !== furniture.id);
+  const otherFurniture = simulatorScene.furniture.filter(
+    (f) => f.id !== furniture.id
+  );
   const radius =
     Math.max(furniture.dimensions.width, furniture.dimensions.depth) / 2 + 0.2;
 
@@ -108,6 +109,7 @@ const FurnitureModel = ({
     ]
   );
 
+  // original
   const bind = useGesture(
     {
       onDragStart: ({ event, xy: [dragX, dragY] }) => {
@@ -401,6 +403,24 @@ const FurnitureModel = ({
         );
     }
   };
+
+  const planeRef = useRef<Mesh>(null);
+
+  const initialPosition = useRef<Vector3 | null>(null);
+
+  const getIntersection = useCallback(
+    (x: number, y: number): Vector3 | null => {
+      const mouse = new Vector2(
+        (x / gl.domElement.clientWidth) * 2 - 1,
+        -(y / gl.domElement.clientHeight) * 2 + 1
+      );
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObject(planeRef.current!);
+      return intersects.length > 0 ? intersects[0].point : null;
+    },
+    [camera, raycaster, gl.domElement]
+  );
 
   return (
     <>

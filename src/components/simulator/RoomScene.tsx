@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Suspense, useRef, useEffect } from "react";
+import { Suspense, useRef, useEffect, useImperativeHandle } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import {
   OrbitControls,
@@ -13,8 +13,9 @@ import * as THREE from "three";
 import { PlacedFurniture } from "@/types/interactive";
 import { Coordinate } from "@/types/common";
 
-import { PerspectiveCamera as ThreeCamera } from "three";
+import { PerspectiveCamera as ThreeCamera, WebGLRenderer } from "three";
 import { useSimulatorStore } from "@/stores/useSimulatorStore";
+import { useCanvasCaptureStore } from "@/stores/useCanvasCaptureStore";
 
 import RoomSimulator from "@/components/simulator/RoomSimulator";
 import { isFurnitureValidPosition } from "@/utils/validator";
@@ -27,6 +28,7 @@ const FurnitureModel = dynamic(() => import("@/components/3d/FurnitureModel"), {
 const RoomScene = () => {
   const cameraRef = useRef<ThreeCamera>(null);
   const controlsRef = useRef<any>(null);
+  const glRef = useRef<WebGLRenderer | null>(null);
 
   const {
     cameraView,
@@ -108,6 +110,9 @@ const RoomScene = () => {
 
   return (
     <Canvas
+      onCreated={({ gl }) => {
+        glRef.current = gl;
+      }}
       gl={{ preserveDrawingBuffer: true }}
       onPointerMissed={handlePointerMissed}
     >
