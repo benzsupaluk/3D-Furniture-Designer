@@ -31,6 +31,14 @@ jobs:
 
       - name: Build application
         run: pnpm build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_API_KEY: ${{ secrets.NEXT_PUBLIC_API_KEY }}
+          NEXT_PUBLIC_R2_ENDPOINT: ${{ secrets.NEXT_PUBLIC_R2_ENDPOINT }}
+          NEXT_PUBLIC_R2_PUBLIC_URL: ${{ secrets.NEXT_PUBLIC_R2_PUBLIC_URL }}
+          NEXT_PUBLIC_R2_BUCKET_NAME: ${{ secrets.NEXT_PUBLIC_R2_BUCKET_NAME }}
+          NEXT_PUBLIC_R2_ACCESS_KEY: ${{ secrets.NEXT_PUBLIC_R2_ACCESS_KEY }}
+          NEXT_PUBLIC_R2_SECRET_KEY: ${{ secrets.NEXT_PUBLIC_R2_SECRET_KEY }}
 
       - name: Export static site
         run: pnpm export
