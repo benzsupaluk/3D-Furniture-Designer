@@ -146,7 +146,7 @@ A modern, interactive 3D space base interior design tool built with Next.js and 
 1. Arrange your furniture as desired
 2. Click the "Generate from Scene" button to capture the current view
 3. Select space type and style on "Confirmation Generate from Scene" popup
-4. Click "Generate"
+4. Click "Start Generation"
 5. The image is sent to Spacely AI API for processing
 6. View the generated styled version in the preview panel
 

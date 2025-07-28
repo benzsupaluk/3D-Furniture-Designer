@@ -203,7 +203,7 @@ const GenerateConfirmationModal = ({
             disabled={isPending}
           >
             <SparklesIcon />
-            Generate
+            Start Generation
           </Button>
         </DialogFooter>
       </DialogContent>
