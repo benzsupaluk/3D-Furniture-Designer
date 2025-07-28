@@ -11,6 +11,24 @@ const minioClient = new Client({
 });
 
 export async function POST(req: NextRequest) {
+  const env = process.env.NODE_ENV;
+
+  const allowedOrigin =
+    env === "development"
+      ? "http://localhost:3000"
+      : process.env.NEXT_PUBLIC_ALLOWED_DOMAIN ||
+        "3d-furniture-designer.vercel.app";
+  const origin = req.headers.get("origin") || req.headers.get("referer");
+
+  if (!origin || !origin.startsWith(allowedOrigin)) {
+    return NextResponse.json(
+      {
+        error: "Access denied. Your domain is not allowed to access this API.",
+      },
+      { status: 403 }
+    );
+  }
+
   const { base64, contentType = "image/png" } = await req.json();
 
   if (!base64) {

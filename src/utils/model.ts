@@ -11,27 +11,27 @@ export const getDefaultFurnitureInfo = (
     case "chair":
       dimensions = { width: 0.6, height: 0.8, depth: 0.6 };
       imagePreview =
-        "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+        "https://pub-6b5e438ff521432d97743fa951e0db00.r2.dev/chair.webp";
       break;
     case "table":
       dimensions = { width: 1.2, height: 0.8, depth: 0.8 };
       imagePreview =
-        "https://images.unsplash.com/photo-1559051668-934cd674493c?q=80&w=1035&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+        "https://pub-6b5e438ff521432d97743fa951e0db00.r2.dev/table.webp";
       break;
     case "sofa":
       dimensions = { width: 2.0, height: 0.8, depth: 0.9 };
       imagePreview =
-        "https://images.unsplash.com/photo-1512212621149-107ffe572d2f?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+        "https://pub-6b5e438ff521432d97743fa951e0db00.r2.dev/sofa.webp";
       break;
     case "bed":
       dimensions = { width: 1.6, height: 0.6, depth: 2.0 };
       imagePreview =
-        "https://images.unsplash.com/photo-1635594202056-9ea3b497e5c0?q=80&w=1180&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+        "https://pub-6b5e438ff521432d97743fa951e0db00.r2.dev/bed.webp";
       break;
     case "cabinet":
       dimensions = { width: 1.0, height: 2.0, depth: 0.5 };
       imagePreview =
-        "https://images.unsplash.com/photo-1591129841117-3adfd313e34f?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+        "https://pub-6b5e438ff521432d97743fa951e0db00.r2.dev/cabinet.webp";
       break;
   }
 

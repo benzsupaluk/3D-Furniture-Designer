@@ -1,4 +1,5 @@
 import dynamic from "next/dynamic";
+
 import { Suspense } from "react";
 const SimulatorContainer = dynamic(
   () => import("@/components/simulator/SimulatorContainer")

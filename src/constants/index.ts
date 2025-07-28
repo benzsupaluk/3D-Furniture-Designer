@@ -7,7 +7,7 @@ export const ROOM_CATEGORIES: RoomCategory[] = [
     id: "bedroom",
     name: "Bedroom",
     imageUrl:
-      "https://images.unsplash.com/photo-1618221118493-9cfa1a1c00da?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "https://pub-6b5e438ff521432d97743fa951e0db00.r2.dev/bedroom.webp",
     furniture: [
       {
         id: "cabinet-1",
@@ -96,7 +96,7 @@ export const ROOM_CATEGORIES: RoomCategory[] = [
     id: "livingRoom",
     name: "Living Room",
     imageUrl:
-      "https://images.unsplash.com/photo-1605774337664-7a846e9cdf17?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "https://pub-6b5e438ff521432d97743fa951e0db00.r2.dev/living_room.webp",
     furniture: [
       {
         id: "table-2",
@@ -211,8 +211,7 @@ export const ROOM_CATEGORIES: RoomCategory[] = [
   {
     id: "dining",
     name: "Dining",
-    imageUrl:
-      "https://images.unsplash.com/photo-1617806118233-18e1de247200?q=80&w=2232&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    imageUrl: "https://pub-6b5e438ff521432d97743fa951e0db00.r2.dev/dining.webp",
     furniture: [
       {
         id: "table-3",

@@ -127,7 +127,7 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
   return (
     <aside
       className={cn(
-        "relative transition-all flex shadow-xs xl:h-[calc(100svh-64px)] h-[calc(100svh-32px)] rounded-xl bg-white border pt-8",
+        "relative transition-all flex shadow-xs xl:h-[calc(100svh-64px)] h-[calc(100svh-32px)] rounded-xl bg-white border pt-6",
         expand
           ? "w-1/3 max-w-[240px] border-gray-200"
           : "w-5 max-w-[20px] border-transparent",
@@ -138,6 +138,9 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
         variant={`icon`}
         className="rounded-full absolute top-[-10px] right-[-10px] w-10 h-10 border hover:bg-primary-50 bg-white"
         onClick={() => setExpand(!expand)}
+        aria-label={
+          expand ? "Hide furniture selector" : "Show furniture selector"
+        }
       >
         {expand ? (
           <PanelLeftCloseIcon className="size-5" />
@@ -177,14 +180,14 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
                   >
                     {category.imageUrl && (
                       <Image
-                        alt={category.name}
+                        alt={`${category.name} category`}
                         src={category.imageUrl}
                         fill={true}
-                        className="object-cover mx-auto w-full rounded-lg group-hover:scale-110 transition-all duration-300 opacity-80 group-hover:opacity-100"
-                        priority={true}
-                        sizes="(max-width: 768px) 100vw, 50vw"
+                        className="object-cover mx-auto rounded-lg group-hover:scale-110 transition-all duration-300 opacity-80 group-hover:opacity-100"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         placeholder="blur"
                         blurDataURL="/images/placeholder.webp"
+                        priority
                       />
                     )}
                     <div className="relative flex items-end h-full p-1">
@@ -215,6 +218,9 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
                   {selectedCategory.furniture.length} item
                   {selectedCategory.furniture.length > 1 ? "s" : ""}
                 </span>
+                <span className="text-sm text-gray-600 border border-gray-200 rounded p-2 bg-primary-50">
+                  Click to add furniture to the scene
+                </span>
               </header>
               {/* Furniture */}
               <section className="grow overflow-auto">
@@ -241,7 +247,7 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
                         >
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <InfoIcon className="absolute size-3 top-2 right-2 text-gray-600 opacity-50" />
+                              <InfoIcon className="absolute size-3 top-2 right-2 text-gray-600 opacity-70 z-1 bg-white rounded-full" />
                             </TooltipTrigger>
                             <TooltipContent className="space-y-0.5 text-xs text-gray-500 max-w-40">
                               <p className="font-semibold">{furniture.name}</p>

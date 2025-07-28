@@ -13,7 +13,12 @@ import { useCanvasCaptureStore } from "@/stores/useCanvasCaptureStore";
 import { useNotificationStore } from "@/stores/useNotificationStore";
 import { useSimulatorStore } from "@/stores/useSimulatorStore";
 
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import GenerateConfirmationModal from "./GenerateConfirmationModal";
 import {
   Dialog,
@@ -31,6 +36,7 @@ import {
   ChevronDown,
   ChevronLeftCircleIcon,
   ChevronRightCircleIcon,
+  InfoIcon,
 } from "lucide-react";
 
 const GenerateImageSection = ({ className }: { className?: string }) => {
@@ -62,8 +68,7 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
     if (!gl || !camera || !scene) return;
 
     setLabelsVisibility(false);
-    const originalPos = camera.position.clone();
-    const originalRot = camera.rotation.clone();
+
     const originalSize = gl.getSize(new Vector2());
     const originalPixelRatio = gl.getPixelRatio();
 
@@ -77,9 +82,6 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
     gl.setSize(newWidth, newHeight, false);
     gl.setPixelRatio(originalPixelRatio * scaleFactor);
 
-    camera.position.set(0, 3, 15);
-    camera.lookAt(0, 4, 0);
-
     gl.render(scene, camera);
 
     const imageData = gl.domElement.toDataURL("image/png");
@@ -87,8 +89,7 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
 
     gl.setSize(originalSize.x, originalSize.y, false);
     gl.setPixelRatio(originalPixelRatio);
-    camera.position.copy(originalPos);
-    camera.rotation.copy(originalRot);
+
     perspectiveCamera.fov = originalFov;
     perspectiveCamera.updateProjectionMatrix();
     setLabelsVisibility(true);
@@ -204,15 +205,27 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
   }, [refId]);
 
   const generateButton = (
-    <Button
-      className="ml-auto mb-0.5"
-      onClick={handleCapture}
-      variant={poolResult?.result ? "ghost-secondary" : "default"}
-      disabled={poolResult?.status === "processing"}
-    >
-      {poolResult?.result ? <RefreshCwIcon /> : <SparklesIcon />}
-      Generate from Scene
-    </Button>
+    <div className="flex items-center justify-end gap-2 pb-0.5">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <InfoIcon className="size-4 text-gray-500" />
+        </TooltipTrigger>
+        <TooltipContent className="text-sm text-gray-600 max-w-60">
+          <p>
+            Make sure to zoom, pan, or rotate the scene to your desired angle
+            before clicking "Generate from Scene" to capture a screenshot.
+          </p>
+        </TooltipContent>
+      </Tooltip>
+      <Button
+        onClick={handleCapture}
+        variant={poolResult?.result ? "ghost-secondary" : "default"}
+        disabled={poolResult?.status === "processing"}
+      >
+        {poolResult?.result ? <RefreshCwIcon /> : <SparklesIcon />}
+        Generate from Scene
+      </Button>
+    </div>
   );
 
   return (
@@ -432,6 +445,7 @@ const DisplayImageModal = ({
               aria-label="Next image"
               variant={"secondary"}
               onClick={handleNextImage}
+              autoFocus
             >
               <ChevronRightCircleIcon />
             </Button>

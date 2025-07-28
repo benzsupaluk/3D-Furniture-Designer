@@ -94,7 +94,11 @@ const ConfigSettings = ({ currentTheme }: { currentTheme: ThemeConfig }) => {
     <div className="absolute top-3 right-1">
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant={"secondary"} className="rounded-full p-0 w-8 h-8">
+          <Button
+            aria-label="Settings"
+            variant={"secondary"}
+            className="rounded-full p-0 w-8 h-8"
+          >
             <Settings2Icon />
           </Button>
         </PopoverTrigger>
