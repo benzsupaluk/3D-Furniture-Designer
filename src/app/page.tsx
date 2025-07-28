@@ -1,5 +1,5 @@
 import dynamic from "next/dynamic";
-
+import { Suspense } from "react";
 const SimulatorContainer = dynamic(
   () => import("@/components/simulator/SimulatorContainer")
 );
@@ -12,7 +12,13 @@ export default function Home() {
       <FurnitureSelector />
       <div className="grow flex flex-col gap-4 overflow-auto xl:h-[calc(100svh-64px)] h-[calc(100svh-32px)] xl:pr-8 pr-4">
         <SimulatorContainer className="grow" />
-        <GenerateImageSection className="flex" />
+        <Suspense
+          fallback={
+            <div className="flex bg-gray-50 animate-pulse rounded"></div>
+          }
+        >
+          <GenerateImageSection className="flex" />
+        </Suspense>
       </div>
     </main>
   );

@@ -197,10 +197,12 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
 
   return (
     <>
-      <GenerateConfirmationModal
-        open={openConfirmationModal}
-        setOpen={setOpenConfirmationModal}
-      />
+      <Suspense fallback={<></>}>
+        <GenerateConfirmationModal
+          open={openConfirmationModal}
+          setOpen={setOpenConfirmationModal}
+        />
+      </Suspense>
       <section className={cn("flex flex-col gap-3", className)}>
         {!poolResult?.result && !refId && generateButton}
         {refId && poolResult && (
