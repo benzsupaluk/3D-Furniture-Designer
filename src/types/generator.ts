@@ -1,5 +1,15 @@
-export type SpaceType = "bedroom" | "living_room" | "kitchen";
+export type SpaceType = "bedroom" | "living_room" | "dining_room";
 export type SpaceStyle = "modern" | "minimalist" | "industrial_loft";
+
+export type SpaceTypeItem = {
+  key: SpaceType;
+  name: string;
+};
+
+export type SpaceStyleItem = {
+  key: SpaceStyle;
+  name: string;
+};
 
 export type SpaceGeneratorResponse = {
   data: string;
@@ -8,8 +18,8 @@ export type SpaceGeneratorResponse = {
 export type SpaceGeneratorRequest = {
   model: string;
   imageUrl: string;
-  spaceType: string;
-  spaceStyle: string;
+  spaceType: SpaceType;
+  spaceStyle: SpaceStyle;
   renovateType: string;
 };
 

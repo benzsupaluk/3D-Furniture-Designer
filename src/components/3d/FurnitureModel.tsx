@@ -588,19 +588,31 @@ const FurnitureModel = memo(
                 distance={6}
                 castShadow={false}
                 color={"#fffbe6"}
+                name={`label:${furniture.name}-spotlight`}
               />
               {/* Glow ring on the floor below the selected furniture */}
-              <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.1, 0]}>
+              <mesh
+                name={`label:${furniture.name}-glow-ring`}
+                rotation={[-Math.PI / 2, 0, 0]}
+                position={[0, 0.1, 0]}
+              >
                 <ringGeometry args={[radius * 1.2, radius * 1.5, 32]} />
                 <meshBasicMaterial color="#000000" transparent opacity={0.5} />
               </mesh>
               {/* Diamond shape indicator on top */}
-              <mesh position={[0, furniture.dimensions.height + 1, 0]}>
+              <mesh
+                name={`label:${furniture.name}-indicator`}
+                position={[0, furniture.dimensions.height + 1, 0]}
+              >
                 <octahedronGeometry args={[0.3, 0]} />
                 <meshBasicMaterial color="#0543f5" transparent opacity={0.8} />
               </mesh>
               {/* Arrow */}
-              <group position={[1, 0.4, 0]} {...bindScale()}>
+              <group
+                name={`label:${furniture.name}-scale`}
+                position={[1, 0.4, 0]}
+                {...bindScale()}
+              >
                 {/* Shaft of the arrow */}
                 <mesh>
                   <cylinderGeometry args={[0.04, 0.04, 0.5, 10]} />
@@ -620,7 +632,7 @@ const FurnitureModel = memo(
                 </mesh>
               </group>
               {isScaling && (
-                <mesh>
+                <mesh name={`label:${furniture.name}-scale-indicator`}>
                   <lineSegments>
                     <edgesGeometry
                       args={[

@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import TextDropdown from "@/components/common/TextDropdown";
 
 import { useLoadingStore } from "@/stores/useLoadingStore";
 import { useCanvasCaptureStore } from "@/stores/useCanvasCaptureStore";
@@ -39,10 +40,28 @@ const GenerateConfirmationModal = ({
 
   const { loadingFullScreen, setLoadingFullScreen } = useLoadingStore();
   const { imageDataUrl, clearImageDataUrl } = useCanvasCaptureStore();
-  const { spaceType, spaceStyle, setRefId } = useSpaceGeneratorStore();
+  const {
+    spaceType,
+    setSpaceType,
+    spaceTypeOptions,
+    spaceStyleOptions,
+    spaceStyle,
+    setSpaceStyle,
+    setRefId,
+  } = useSpaceGeneratorStore();
   const { addNotification } = useNotificationStore();
 
   const [isPending, startTransition] = useTransition();
+
+  const spaceTypeNameList = spaceTypeOptions.map((type) => type.name);
+  console.log("spaceType", spaceType);
+  const selectedTypeName = spaceTypeOptions.find(
+    (type) => type.key === spaceType
+  )?.name;
+  const spaceStyleNameList = spaceStyleOptions.map((style) => style.name);
+  const selectedStyleName = spaceStyleOptions.find(
+    (style) => style.key === spaceStyle
+  )?.name;
 
   const onClose = () => {
     clearImageDataUrl();
@@ -130,8 +149,34 @@ const GenerateConfirmationModal = ({
             Send the screenshot to generate a styled version
           </DialogDescription>
         </DialogHeader>
-        <DialogBody>
-          {/* screenshot */}
+        <DialogBody className="flex flex-col gap-4">
+          {/* Options */}
+          <div className="flex flex-row w-full items-end gap-4 pt-1">
+            {/* Space type selection */}
+            <TextDropdown
+              items={spaceTypeNameList}
+              selectedItem={selectedTypeName || ""}
+              handleSetSelectedItem={(_, index) => {
+                setSpaceType(spaceTypeOptions[index].key);
+              }}
+              label="Space Type:"
+              placeholder="Select space type"
+              className="flex flex-row items-center gap-3 text-sm"
+            />
+            <div className="h-10 w-px bg-gray-300"></div>
+            {/* Space style selection */}
+            <TextDropdown
+              items={spaceStyleNameList}
+              selectedItem={selectedStyleName || ""}
+              handleSetSelectedItem={(_, index) => {
+                setSpaceStyle(spaceStyleOptions[index].key);
+              }}
+              label="Space Style:"
+              placeholder="Select space style"
+              className="flex flex-row items-center gap-3 text-sm"
+            />
+          </div>
+          {/* Screenshot */}
           <div className="bg-gray-50 mx-auto flex overflow-auto">
             {imageDataUrl && (
               <Image

@@ -121,7 +121,7 @@ const RoomScene = () => {
         fov={60}
         near={0.1}
         far={500}
-        position={[5, 8, 12]}
+        position={[3, 8, 11]}
       />
       <OrbitControls
         ref={controlsRef}

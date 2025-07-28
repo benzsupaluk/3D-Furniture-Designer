@@ -11,6 +11,7 @@ import { PerspectiveCamera, Vector2 } from "three";
 import { useSpaceGeneratorStore } from "@/stores/useSpaceGeneratorStore";
 import { useCanvasCaptureStore } from "@/stores/useCanvasCaptureStore";
 import { useNotificationStore } from "@/stores/useNotificationStore";
+import { useSimulatorStore } from "@/stores/useSimulatorStore";
 
 import { Button } from "../ui/button";
 import GenerateConfirmationModal from "./GenerateConfirmationModal";
@@ -45,6 +46,7 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
     useSpaceGeneratorStore();
   const { gl, camera, scene, setImageDataUrl } = useCanvasCaptureStore();
   const { addNotification } = useNotificationStore();
+  const { setSelectedFurnitureId } = useSimulatorStore();
 
   const setLabelsVisibility = (visible: boolean) => {
     scene?.traverse((object) => {
@@ -55,7 +57,10 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
   };
 
   const handleCapture = async () => {
+    setSelectedFurnitureId("");
+
     if (!gl || !camera || !scene) return;
+
     setLabelsVisibility(false);
     const originalPos = camera.position.clone();
     const originalRot = camera.rotation.clone();
@@ -72,8 +77,8 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
     gl.setSize(newWidth, newHeight, false);
     gl.setPixelRatio(originalPixelRatio * scaleFactor);
 
-    camera.position.set(0, 3, 9);
-    camera.lookAt(0, 2, 0);
+    camera.position.set(0, 3, 15);
+    camera.lookAt(0, 4, 0);
 
     gl.render(scene, camera);
 
@@ -148,6 +153,21 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
 
           if (status === "failed" || status === "success") {
             alreadyUploaded = true;
+            if (status === "success") {
+              addNotification({
+                title: `Completed space generation`,
+                description:
+                  "We have successfully generated image from Space Generator API.",
+                state: "success",
+              });
+            } else {
+              addNotification({
+                title: `Failed to generate space`,
+                description:
+                  "Sorry, we are unable to generate image from Space Generator API.",
+                state: "error",
+              });
+            }
             clearState();
           }
         } else {
@@ -253,36 +273,40 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
               </Button>
               {poolResult?.status !== "processing" && generateButton}
             </div>
-            {!hideResult && (
-              <AnimatePresence>
-                <motion.div
-                  initial={{ y: 10, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -10, opacity: 0 }}
-                  transition={{ duration: 0.6 }}
-                  className="shrink-0"
-                >
-                  {/* loading bar */}
-                  {poolResult?.status === "processing" && (
-                    <div className="relative w-full h-2 bg-primary-300 overflow-hidden rounded-tr-md -mb-2">
-                      <div
-                        style={{ width: `${poolResult.progress}%` }}
-                        className={cn(
-                          "absolute h-full left-0 bg-primary-600 rounded-r-xl"
-                        )}
-                      ></div>
-                    </div>
-                  )}
 
-                  <section className="overflow-auto h-35 flex flex-row gap-3 px-6 py-2 bg-primary-50 snap-x rounded-b-2xl rounded-r-2xl justify-center">
-                    {poolResult?.status === "processing" && <LoaderImages />}
-                    {poolResult?.status === "success" && (
-                      <ResultGeneratedImages images={poolResult.result} />
-                    )}
-                  </section>
-                </motion.div>
-              </AnimatePresence>
-            )}
+            <AnimatePresence>
+              <motion.div
+                animate={{
+                  opacity: hideResult ? 0 : 1,
+                  y: hideResult ? -10 : 0,
+                  height: hideResult ? 0 : "auto",
+                }}
+                initial={false}
+                transition={{ duration: 0.4, ease: "easeInOut" }}
+                style={{ overflow: "hidden" }}
+                className="shrink-0"
+              >
+                {/* loading bar */}
+                {poolResult?.status === "processing" && (
+                  <div className="relative w-full h-2 bg-primary-300 overflow-hidden rounded-tr-md -mb-2">
+                    <div
+                      style={{ width: `${poolResult.progress}%` }}
+                      className={cn(
+                        "absolute h-full left-0 bg-primary-600 rounded-r-xl"
+                      )}
+                    ></div>
+                  </div>
+                )}
+
+                <section className="overflow-auto h-35 flex flex-row gap-3 px-6 py-2 bg-primary-50 rounded-b-2xl rounded-r-2xl justify-center">
+                  {poolResult?.status === "processing" && <LoaderImages />}
+                  <ResultGeneratedImages
+                    className={cn(poolResult?.status !== "success" && "hidden")}
+                    images={poolResult.result}
+                  />
+                </section>
+              </motion.div>
+            </AnimatePresence>
           </section>
         )}
       </section>
@@ -418,7 +442,13 @@ const DisplayImageModal = ({
   );
 };
 
-const ResultGeneratedImages = ({ images }: { images: string[] }) => {
+const ResultGeneratedImages = ({
+  images,
+  className,
+}: {
+  images: string[];
+  className?: string;
+}) => {
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   // const [zoomImage, setZoomImage] = useState<string>("");
   const open = currentIndex !== null;
@@ -440,11 +470,11 @@ const ResultGeneratedImages = ({ images }: { images: string[] }) => {
       {images.map((image, index) => (
         <motion.div
           key={index}
-          initial={{ x: 10, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{ x: -10, opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="hover:cursor-zoom-in snap-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className={cn("hover:cursor-zoom-in snap-center", className)}
           onClick={() => setCurrentIndex(index)}
         >
           <Image

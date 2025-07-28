@@ -1,5 +1,6 @@
 import { RoomCategory } from "@/types/room";
 import { ThemeConfig } from "@/utils/theme";
+import { SpaceStyleItem, SpaceTypeItem } from "@/types/generator";
 
 export const ROOM_CATEGORIES: RoomCategory[] = [
   {
@@ -306,5 +307,35 @@ export const THEME_CONFIGS: ThemeConfig[] = [
     style: {
       backgroundColor: "#1B1C1E",
     },
+  },
+];
+
+export const SPACE_TYPES: SpaceTypeItem[] = [
+  {
+    key: "bedroom",
+    name: "Bedroom",
+  },
+  {
+    key: "living_room",
+    name: "Living Room",
+  },
+  {
+    key: "dining_room",
+    name: "Dining Room",
+  },
+];
+
+export const SPACE_STYLES: SpaceStyleItem[] = [
+  {
+    key: "modern",
+    name: "Modern",
+  },
+  {
+    key: "minimalist",
+    name: "Minimalist",
+  },
+  {
+    key: "industrial_loft",
+    name: "Industrial Loft",
   },
 ];

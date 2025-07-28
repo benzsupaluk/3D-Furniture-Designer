@@ -60,14 +60,14 @@ const NotificationComponent = () => {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 space-y-2 max-w-[80svw]">
+    <div className="fixed bottom-26 right-4 z-50 space-y-2 max-w-[80svw]">
       <AnimatePresence>
         {notifications.map((notification) => (
           <motion.div
             key={notification.id}
-            initial={{ opacity: 0, y: 300 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 300 }}
+            initial={{ opacity: 0, x: 300 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 300 }}
             transition={{
               type: "spring",
               stiffness: 300,
