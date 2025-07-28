@@ -26,6 +26,11 @@ jobs:
           node-version: "20"
           cache: "pnpm"
 
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        with:
+          static_site_generator: next
+
       - name: Install dependencies
         run: pnpm install
 
@@ -40,8 +45,8 @@ jobs:
           NEXT_PUBLIC_R2_ACCESS_KEY: ${{ secrets.NEXT_PUBLIC_R2_ACCESS_KEY }}
           NEXT_PUBLIC_R2_SECRET_KEY: ${{ secrets.NEXT_PUBLIC_R2_SECRET_KEY }}
 
-      - name: Export static site
-        run: pnpm deploy
+      - name: Static HTML export with Next.js
+        run: pnpm export
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

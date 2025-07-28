@@ -13,7 +13,7 @@ const lexend = Lexend({
 export const metadata: Metadata = {
   title: "3D Furniture Designer | Space Base Interior Tool",
   description:
-    "Design your own space base with 3D furniture models in real-time. Move, rotate, and scale objects to create your dream space. then generate styled room images with Spacely AI.",
+    "Design your own space base with 3D furniture models in real-time. Move, rotate, and scale objects to create your dream space then generate styled room images with Spacely AI.",
   keywords: [
     "3D interior design",
     "furniture designer",
