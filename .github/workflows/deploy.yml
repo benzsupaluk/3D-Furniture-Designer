@@ -27,15 +27,13 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies
-        run: |
-          if [ -f pnpm-lock.yaml ]; then
-            pnpm install --frozen-lockfile
-          else
-            pnpm install
-          fi
+        run: pnpm install
 
       - name: Build application
         run: pnpm build
+
+      - name: Export static site
+        run: pnpm export
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
