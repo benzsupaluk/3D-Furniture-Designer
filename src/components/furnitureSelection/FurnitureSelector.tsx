@@ -120,8 +120,12 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
   };
 
   const getRandomHexColor = (): string => {
-    const hex = Math.floor(Math.random() * 0xffffff).toString(16);
-    return `#${hex.padStart(6, "0")}`;
+    const r = Math.floor(Math.random() * 128);
+    const g = Math.floor(Math.random() * 128);
+    const b = Math.floor(Math.random() * 128);
+
+    const hex = ((r << 16) | (g << 8) | b).toString(16).padStart(6, "0");
+    return `#${hex}`;
   };
 
   return (
@@ -168,7 +172,9 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
             )}
           >
             <h4 className="font-semibold md:px-3 px-2">
-              Browse furniture by room
+              Browse furniture
+              <br />
+              by room
             </h4>
             <ul className="mt-2 flex flex-col gap-4 grow overflow-y-auto md:px-3 px-2">
               {roomCategories.map((category) => {

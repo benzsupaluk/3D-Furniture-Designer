@@ -1,5 +1,4 @@
-// store/useCanvasCaptureStore.ts
-import { WebGLRenderer, Scene, Camera, Vector3, Euler } from "three";
+import { WebGLRenderer, Scene, Camera } from "three";
 import { create } from "zustand";
 
 type CanvasCaptureStore = {

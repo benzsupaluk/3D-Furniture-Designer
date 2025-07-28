@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { Mesh } from "three";
 
 import { TextureLoader, MeshStandardMaterial } from "three";

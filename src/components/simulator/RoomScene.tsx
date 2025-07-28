@@ -1,13 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Suspense, useRef, useEffect, useImperativeHandle } from "react";
-import { Canvas, useThree } from "@react-three/fiber";
-import {
-  OrbitControls,
-  Environment,
-  PerspectiveCamera,
-} from "@react-three/drei";
+import { Suspense, useRef, useEffect } from "react";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, PerspectiveCamera, Html } from "@react-three/drei";
 
 import { PlacedFurniture } from "@/types/interactive";
 import { Coordinate } from "@/types/common";
@@ -17,6 +13,7 @@ import { useSimulatorStore } from "@/stores/useSimulatorStore";
 
 import RoomSimulator from "@/components/simulator/RoomSimulator";
 import { isFurnitureValidPosition } from "@/utils/validator";
+import Spinner from "../loader/Spinner";
 
 const FurnitureModel = dynamic(() => import("@/components/3d/FurnitureModel"), {
   ssr: false,
@@ -159,7 +156,14 @@ const RoomScene = () => {
       </Suspense>
       {scene.furniture.map((furniture) => {
         return (
-          <Suspense key={furniture.id}>
+          <Suspense
+            key={furniture.id}
+            fallback={
+              <Html>
+                <Spinner />
+              </Html>
+            }
+          >
             <FurnitureModel
               key={furniture.id}
               furniture={furniture}

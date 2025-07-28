@@ -208,42 +208,6 @@ const FurnitureModel = memo(
           invalidate();
         },
         onDrag: ({ event, xy: [dragX, dragY] }) => {
-          // event.stopPropagation();
-          // if (!initialDragPoint.current || !meshRef.current) return;
-
-          // const currentIntersectPoint = get3DIntersection(dragX, dragY);
-          // if (currentIntersectPoint) {
-          //   // Calculate distance dragged relative to the initial click point
-          //   const dragDelta = currentIntersectPoint
-          //     .clone()
-          //     .sub(initialDragPoint.current);
-
-          //   // Simple scaling factor based on X-axis movement
-          //   const scaleFactorDelta = dragDelta.x * 0.5; // Adjust sensitivity
-          //   let newScaleValue = initialScale.current[0] + scaleFactorDelta;
-
-          //   // Clamp scale to reasonable values (min 0.3, max 3.0)
-          //   newScaleValue = Math.max(0.3, Math.min(3.0, newScaleValue));
-
-          //   const newScale: [number, number, number] = [
-          //     newScaleValue,
-          //     newScaleValue,
-          //     newScaleValue,
-          //   ];
-
-          //   // Check collision with the new scale (use current position, new scale)
-          //   if (
-          //     isFurnitureValidPosition(
-          //       tempPosition.current,
-          //       { ...furniture, scale: newScale },
-          //       otherFurniture
-          //     )
-          //   ) {
-          //     tempScale.current = newScale; // Update ref
-          //     meshRef.current.scale.set(...newScale); // Apply scale to the mesh
-          //   }
-          // }
-          // invalidate();
           event.stopPropagation();
           const intersect = get3DIntersection(dragX, dragY);
           if (!intersect || !initialDragPoint.current || !meshRef.current)
@@ -290,8 +254,6 @@ const FurnitureModel = memo(
         depth: furniture.dimensions.depth * tempScale.current[2],
       };
     }, [furniture.dimensions, tempScale.current]);
-
-    const scaledDims = getScaledDimensions();
 
     const renderGeometry = () => {
       const { width, height, depth } = furniture.dimensions;
@@ -607,28 +569,38 @@ const FurnitureModel = memo(
                 <octahedronGeometry args={[0.3, 0]} />
                 <meshBasicMaterial color="#0543f5" transparent opacity={0.8} />
               </mesh>
-              {/* Arrow */}
+              {/* Arrow for scaling */}
               <group
                 name={`label:${furniture.name}-scale`}
                 position={[1, 0.4, 0]}
                 {...bindScale()}
               >
-                {/* Shaft of the arrow */}
+                {/* Invisible hitbox */}
+                <mesh position={[0, 0, 0]}>
+                  <cylinderGeometry args={[0.3, 0.3, 1.2, 8]} />
+                  <meshBasicMaterial
+                    transparent
+                    opacity={0}
+                    depthWrite={false}
+                  />
+                </mesh>
+
+                {/* Shaft */}
                 <mesh>
                   <cylinderGeometry args={[0.04, 0.04, 0.5, 10]} />
-                  <meshBasicMaterial color={"#282120"} />
+                  <meshBasicMaterial color="#282120" />
                 </mesh>
 
-                {/* Top cone - smaller and adjusted position */}
+                {/* Top cone */}
                 <mesh position={[0, 0.3, 0]}>
                   <coneGeometry args={[0.1, 0.1, 4]} />
-                  <meshBasicMaterial color={"#282120"} />
+                  <meshBasicMaterial color="#282120" />
                 </mesh>
 
-                {/* Bottom cone - flipped and smaller */}
+                {/* Bottom cone */}
                 <mesh position={[0, -0.3, 0]} rotation={[Math.PI, 0, 0]}>
                   <coneGeometry args={[0.1, 0.1, 4]} />
-                  <meshBasicMaterial color={"#282120"} />
+                  <meshBasicMaterial color="#282120" />
                 </mesh>
               </group>
               {isScaling && (

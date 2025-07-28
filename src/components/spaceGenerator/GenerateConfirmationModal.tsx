@@ -1,4 +1,4 @@
-import { useId, useTransition, useEffect } from "react";
+import { useId, useTransition } from "react";
 
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
@@ -145,7 +145,10 @@ const GenerateConfirmationModal = ({
             Confirm Image Generation
           </DialogTitle>
           <DialogDescription>
-            Send the screenshot to generate a styled version
+            Send the screenshot to generate a styled version.
+            <br />
+            To refine the current screenshot, you may cancel and adjust the
+            scene as needed.
           </DialogDescription>
         </DialogHeader>
         <DialogBody className="flex flex-col gap-4">

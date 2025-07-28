@@ -1,10 +1,9 @@
 import { create } from "zustand";
 import { nanoid } from "nanoid";
-import { RoomCategory, Furniture } from "@/types/room";
+import { RoomCategory } from "@/types/room";
 import { PlacedFurniture } from "@/types/interactive";
 import { CameraView, InteractiveMode } from "@/types/interactive";
 import { ROOM_CATEGORIES } from "@/constants";
-import { Coordinate } from "@/types/common";
 
 type SimulatorState = {
   roomCategories: RoomCategory[];
@@ -16,10 +15,8 @@ type SimulatorState = {
   selectedFurnitureId: string;
   setSelectedFurnitureId: (furnitureId: string) => void;
 
-  addFurnitureToScene: (
-    furniture: Omit<PlacedFurniture, "id">,
-    position?: Coordinate
-  ) => void;
+  addFurnitureToScene: (furniture: Omit<PlacedFurniture, "id">) => void;
+  resetAllFurnitureFromScene: () => void;
   removeFurnitureFromScene: (furnitureId: string) => void;
   updatePlacedFurnitureById: (
     furnitureId: string,
@@ -45,7 +42,7 @@ export const useSimulatorStore = create<SimulatorState>((set) => ({
   setSelectedFurnitureId: (furnitureId) =>
     set({ selectedFurnitureId: furnitureId }),
 
-  addFurnitureToScene: (furniture, position = [0, 0, 0]) =>
+  addFurnitureToScene: (furniture) =>
     set((state) => ({
       scene: {
         ...state.scene,
@@ -58,6 +55,8 @@ export const useSimulatorStore = create<SimulatorState>((set) => ({
         ],
       },
     })),
+
+  resetAllFurnitureFromScene: () => set({ scene: { furniture: [] } }),
 
   removeFurnitureFromScene: (furnitureId) =>
     set((state) => ({

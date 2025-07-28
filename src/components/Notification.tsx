@@ -14,8 +14,14 @@ const NotificationComponent = () => {
     const newNotificationIds = notifications
       .filter((notification) => !localNotifications.includes(notification.id))
       .map((notification) => notification.id);
+    if (localNotifications.length + newNotificationIds.length > 5) {
+      // Remove all notifications from store
+      localNotifications.forEach((id) => removeNotification(id));
+      newNotificationIds.forEach((id) => removeNotification(id));
 
-    if (newNotificationIds.length > 0) {
+      // Clear local notifications state
+      setLocalNotifications([]);
+    } else if (newNotificationIds.length > 0) {
       setLocalNotifications((prev) => [...prev, ...newNotificationIds]);
     }
   }, [notifications, localNotifications]);
@@ -29,7 +35,7 @@ const NotificationComponent = () => {
         setLocalNotifications((prev) =>
           prev.filter((id) => id !== notificationId)
         );
-      }, 5000);
+      }, 3000);
 
       timeouts.push(timeout);
     });
@@ -76,7 +82,6 @@ const NotificationComponent = () => {
             }}
           >
             <Alert variant={getVariant(notification.state)}>
-              {/* <CheckCircle2Icon /> */}
               {getIcon(notification.state)}
               <AlertTitle>{notification.title}</AlertTitle>
               <AlertDescription>{notification.description}</AlertDescription>

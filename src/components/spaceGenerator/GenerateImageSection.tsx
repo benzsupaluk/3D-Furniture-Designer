@@ -241,49 +241,55 @@ const GenerateImageSection = ({ className }: { className?: string }) => {
         {refId && poolResult && (
           <section className="flex flex-col">
             <div className="flex items-end justify-between">
-              <div
-                className={cn(
-                  "flex items-center gap-1.5 bg-primary-50 w-fit px-4 py-1",
-                  hideResult ? "rounded-2xl" : "rounded-t-2xl"
-                )}
-              >
-                {poolResult.status === "success" ? (
-                  <>
-                    <SparklesIcon className="shrink-0 size-4 text-primary-700" />
-                    <div className="text-primary-600 font-semibold">Result</div>
-                  </>
-                ) : poolResult.status === "processing" ? (
-                  <div className="flex items-end gap-1">
-                    <div className="text-gray-600 text-sm">
-                      Loading result{" "}
-                      <span className="text-xs">({poolResult.progress}%)</span>
+              <div className="flex items-end gap-2 grow">
+                <div
+                  className={cn(
+                    "flex items-center gap-1.5 bg-primary-50 w-fit px-4 py-1",
+                    hideResult ? "rounded-2xl" : "rounded-t-2xl"
+                  )}
+                >
+                  {poolResult.status === "success" ? (
+                    <>
+                      <SparklesIcon className="shrink-0 size-4 text-primary-700" />
+                      <div className="text-primary-600 font-semibold">
+                        Result
+                      </div>
+                    </>
+                  ) : poolResult.status === "processing" ? (
+                    <div className="flex items-end gap-1">
+                      <div className="text-gray-600 text-sm">
+                        Loading result{" "}
+                        <span className="text-xs">
+                          ({poolResult.progress}%)
+                        </span>
+                      </div>
+                      <div className="flex gap-0.5 mb-1.5">
+                        <div className="h-1 w-1 bg-gray-600 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                        <div className="h-1 w-1 bg-gray-600 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                        <div className="h-1 w-1 bg-gray-600 rounded-full animate-bounce"></div>
+                      </div>
                     </div>
-                    <div className="flex gap-0.5 mb-1.5">
-                      <div className="h-1 w-1 bg-gray-600 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                      <div className="h-1 w-1 bg-gray-600 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                      <div className="h-1 w-1 bg-gray-600 rounded-full animate-bounce"></div>
-                    </div>
-                  </div>
-                ) : (
-                  <></>
-                )}
-              </div>
-              <Button
-                variant={`icon`}
-                className=""
-                size={`xs`}
-                onClick={() => setHideResult(!hideResult)}
-              >
-                {!hideResult ? `Hide` : `Show`}
-                <div className="w-3">
-                  <ChevronDown
-                    className={cn(
-                      "transition-transform",
-                      hideResult ? "rotate-180" : ""
-                    )}
-                  />
+                  ) : (
+                    <></>
+                  )}
                 </div>
-              </Button>
+                <Button
+                  variant={`icon`}
+                  className=""
+                  size={`xs`}
+                  onClick={() => setHideResult(!hideResult)}
+                >
+                  {!hideResult ? `Hide` : `Show`}
+                  <div className="w-3">
+                    <ChevronDown
+                      className={cn(
+                        "transition-transform",
+                        hideResult ? "rotate-180" : ""
+                      )}
+                    />
+                  </div>
+                </Button>
+              </div>
               {poolResult?.status !== "processing" && generateButton}
             </div>
 
@@ -464,7 +470,7 @@ const ResultGeneratedImages = ({
   className?: string;
 }) => {
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
-  // const [zoomImage, setZoomImage] = useState<string>("");
+
   const open = currentIndex !== null;
 
   if (images.length === 0) return null;

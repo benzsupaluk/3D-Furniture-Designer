@@ -1,5 +1,3 @@
-import { Dimensions } from "./common";
-
 export type FurnitureType =
   | "chair"
   | "table"

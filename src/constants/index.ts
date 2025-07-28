@@ -2,6 +2,7 @@ import { RoomCategory } from "@/types/room";
 import { ThemeConfig } from "@/utils/theme";
 import { SpaceStyleItem, SpaceTypeItem } from "@/types/generator";
 
+// Mock room categories with furniture
 export const ROOM_CATEGORIES: RoomCategory[] = [
   {
     id: "bedroom",

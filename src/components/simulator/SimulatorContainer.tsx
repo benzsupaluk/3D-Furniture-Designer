@@ -23,6 +23,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import {
   TrashIcon,
@@ -31,6 +36,7 @@ import {
   SwitchCameraIcon,
   Settings2Icon,
   MonitorXIcon,
+  SquareXIcon,
 } from "lucide-react";
 import { THEME_CONFIGS } from "@/constants";
 
@@ -58,6 +64,8 @@ const SimulatorContainer = ({ className }: { className?: string }) => {
           <>
             {/* Room canvas */}
             <RoomScene />
+            {/* Clear all placed furniture */}
+            <ClearAllPlacedFurnitureButton />
             {/* Camera controller */}
             <CameraControls />
           </>
@@ -124,6 +132,28 @@ const ConfigSettings = ({ currentTheme }: { currentTheme: ThemeConfig }) => {
           </div>
         </PopoverContent>
       </Popover>
+    </div>
+  );
+};
+
+const ClearAllPlacedFurnitureButton = () => {
+  const { resetAllFurnitureFromScene } = useSimulatorStore();
+  return (
+    <div className="absolute top-2 left-2">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant={`outline-destructive`}
+            size={`xs`}
+            onClick={resetAllFurnitureFromScene}
+          >
+            <SquareXIcon /> Reset
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent className="text-gray-600 max-w-40 text-center">
+          Clear all furniture on the canvas
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 };
