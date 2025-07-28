@@ -54,7 +54,6 @@ const GenerateConfirmationModal = ({
   const [isPending, startTransition] = useTransition();
 
   const spaceTypeNameList = spaceTypeOptions.map((type) => type.name);
-  console.log("spaceType", spaceType);
   const selectedTypeName = spaceTypeOptions.find(
     (type) => type.key === spaceType
   )?.name;

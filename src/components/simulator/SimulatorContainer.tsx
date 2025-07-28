@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { CameraView } from "@/types/interactive";
 import { Coordinate } from "@/types/common";
 import { useTheme } from "@/hooks/use-theme";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useNotificationStore } from "@/stores/useNotificationStore";
 import { ThemeConfig } from "@/utils";
 
@@ -29,6 +30,7 @@ import {
   RotateCcwIcon,
   SwitchCameraIcon,
   Settings2Icon,
+  MonitorXIcon,
 } from "lucide-react";
 import { THEME_CONFIGS } from "@/constants";
 
@@ -39,6 +41,7 @@ const RoomScene = dynamic(() => import("@/components/simulator/RoomScene"), {
 
 const SimulatorContainer = ({ className }: { className?: string }) => {
   const { currentTheme, isClient } = useTheme();
+  const isMobile = useIsMobile();
 
   return (
     <>
@@ -49,9 +52,17 @@ const SimulatorContainer = ({ className }: { className?: string }) => {
           className
         )}
       >
-        <RoomScene />
-        {/* Camera controller */}
-        <CameraControls />
+        {isMobile ? (
+          <SceneMobile />
+        ) : (
+          <>
+            {/* Room canvas */}
+            <RoomScene />
+            {/* Camera controller */}
+            <CameraControls />
+          </>
+        )}
+
         {/* Config */}
         <ConfigSettings currentTheme={currentTheme} />
         {/* Placed furniture action */}
@@ -60,6 +71,19 @@ const SimulatorContainer = ({ className }: { className?: string }) => {
         <ActivePlacedFurnitureCard />
       </section>
     </>
+  );
+};
+
+const SceneMobile = () => {
+  return (
+    <div className="absolute w-full px-6 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4 text-center items-center justify-center">
+      <MonitorXIcon className="size-20 text-secondary-600" />
+      <p className="text-gray-600 text-lg">
+        We're sorry — canvas editing works best on larger screens. Please use a
+        device with at least a large tablet or desktop display for the best
+        experience.
+      </p>
+    </div>
   );
 };
 

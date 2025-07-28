@@ -23,6 +23,7 @@ import { RoomCategory, Furniture } from "@/types/room";
 import { PlacedFurniture } from "@/types/interactive";
 import { Dimensions } from "@/types/common";
 import { modelPreloader } from "@/hooks/use-model-preloader";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 import { Button } from "../ui/button";
 import { isFurnitureValidPosition } from "@/utils/validator";
@@ -34,12 +35,8 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
   );
   const [expand, setExpand] = useState<boolean>(true);
 
-  const {
-    roomCategories,
-    addFurnitureToScene,
-    removeFurnitureFromScene,
-    scene,
-  } = useSimulatorStore();
+  const { roomCategories, addFurnitureToScene, scene } = useSimulatorStore();
+  const isMobile = useIsMobile();
 
   const { addNotification } = useNotificationStore();
 
@@ -148,134 +145,138 @@ const FurnitureSelector = ({ className }: { className?: string }) => {
           <HousePlusIcon className="size-5" />
         )}
       </Button>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={expand ? { opacity: 100 } : { opacity: 0 }}
-        transition={{ duration: 0.3, delay: 0.2 }}
-        className={cn(
-          "overflow-auto flex shrink-0",
-          expand ? "w-full" : "w-0 invisible"
-        )}
-      >
-        {/* Browse furniture by room category */}
-        <section
+      {isMobile ? (
+        <div className="bg-secondary-50 w-full rounded-md m-2"></div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={expand ? { opacity: 100 } : { opacity: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
           className={cn(
-            "flex flex-col gap-3 shrink-0 w-full",
-            selectedCategory && "hidden"
+            "overflow-auto flex shrink-0",
+            expand ? "w-full" : "w-0 invisible"
           )}
         >
-          <h4 className="font-semibold md:px-3 px-2">
-            Browse furniture by room
-          </h4>
-          <ul className="mt-2 flex flex-col gap-4 grow overflow-y-auto md:px-3 px-2">
-            {roomCategories.map((category) => {
-              return (
-                <li
-                  key={category.id}
-                  className="relative group shrink-0 cursor-pointer h-40 overflow-hidden rounded-lg"
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  {category.imageUrl && (
-                    <Image
-                      alt={category.name}
-                      src={category.imageUrl}
-                      fill={true}
-                      className="object-cover mx-auto w-full rounded-lg group-hover:scale-110 transition-all duration-300 opacity-80 group-hover:opacity-100"
-                      priority={true}
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      placeholder="blur"
-                      blurDataURL="/images/placeholder.webp"
-                    />
-                  )}
-                  <div className="relative flex items-end h-full p-1">
-                    <span className="text-white font-semibold bg-primary-500/90 py-0.5 px-2 rounded-2xl">
-                      {category.name}
-                    </span>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-        {/* Furniture list by category id */}
-        {selectedCategory && (
-          <section className="flex flex-col gap-3">
-            <header className="flex flex-col gap-1 md:px-3 px-2">
-              <Button
-                variant={`link`}
-                onClick={() => setSelectedCategory(null)}
-              >
-                <ChevronLeftIcon className="size-4" />
-                <span className="text-sm">Back</span>
-              </Button>
-              <h4 className="font-semibold">
-                {selectedCategory.name} furniture
-              </h4>
-              <span className="text-sm text-gray-500">
-                {selectedCategory.furniture.length} item
-                {selectedCategory.furniture.length > 1 ? "s" : ""}
-              </span>
-            </header>
-            {/* Furniture */}
-            <section className="grow overflow-auto">
-              <div className="grid grid-cols-2 gap-3 md:p-3 p-2">
-                {selectedCategory.furniture.map((furniture) => {
-                  const imageUrl =
-                    furniture?.previewImage ||
-                    getDefaultFurnitureInfo(furniture.type).imagePreview;
-                  return (
-                    <AnimatePresence key={furniture.id} mode="wait">
-                      <motion.button
-                        type="button"
-                        key={furniture.id}
-                        initial={{ y: 10, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: -10, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className={cn(
-                          "relative rounded cursor-pointer h-42 w-full flex flex-col border-gray-300 gap-2 border hover:border-primary-600 overflow-hidden p-1 hover:ring-4 ring-primary-600"
-                        )}
-                        onClick={() => {
-                          handleAddFurnitureToScene(furniture);
-                        }}
-                      >
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <InfoIcon className="absolute size-3 top-2 right-2 text-gray-600 opacity-50" />
-                          </TooltipTrigger>
-                          <TooltipContent className="space-y-0.5 text-xs text-gray-500 max-w-40">
-                            <p className="font-semibold">{furniture.name}</p>
-                            <hr />
-                            <p>{furniture.description}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                        {/* Image */}
-                        <div className="relative flex grow overflow-hidden bg-gray-100 rounded-sm p-1">
-                          {imageUrl && (
-                            <Image
-                              alt={furniture.name}
-                              src={imageUrl}
-                              fill={true}
-                              className="object-contain m-auto"
-                              placeholder="blur"
-                              blurDataURL="/images/placeholder.webp"
-                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            />
-                          )}
-                        </div>
-                        {/* Name */}
-                        <span className="text-xs font-medium h-8 flex items-center justify-center text-center line-clamp-2">
-                          {furniture.name}
-                        </span>
-                      </motion.button>
-                    </AnimatePresence>
-                  );
-                })}
-              </div>
-            </section>
+          {/* Browse furniture by room category */}
+          <section
+            className={cn(
+              "flex flex-col gap-3 shrink-0 w-full",
+              selectedCategory && "hidden"
+            )}
+          >
+            <h4 className="font-semibold md:px-3 px-2">
+              Browse furniture by room
+            </h4>
+            <ul className="mt-2 flex flex-col gap-4 grow overflow-y-auto md:px-3 px-2">
+              {roomCategories.map((category) => {
+                return (
+                  <li
+                    key={category.id}
+                    className="relative group shrink-0 cursor-pointer h-40 overflow-hidden rounded-lg"
+                    onClick={() => setSelectedCategory(category)}
+                  >
+                    {category.imageUrl && (
+                      <Image
+                        alt={category.name}
+                        src={category.imageUrl}
+                        fill={true}
+                        className="object-cover mx-auto w-full rounded-lg group-hover:scale-110 transition-all duration-300 opacity-80 group-hover:opacity-100"
+                        priority={true}
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        placeholder="blur"
+                        blurDataURL="/images/placeholder.webp"
+                      />
+                    )}
+                    <div className="relative flex items-end h-full p-1">
+                      <span className="text-white font-semibold bg-primary-500/90 py-0.5 px-2 rounded-2xl">
+                        {category.name}
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           </section>
-        )}
-      </motion.div>
+          {/* Furniture list by category id */}
+          {selectedCategory && (
+            <section className="flex flex-col gap-3">
+              <header className="flex flex-col gap-1 md:px-3 px-2">
+                <Button
+                  variant={`link`}
+                  onClick={() => setSelectedCategory(null)}
+                >
+                  <ChevronLeftIcon className="size-4" />
+                  <span className="text-sm">Back</span>
+                </Button>
+                <h4 className="font-semibold">
+                  {selectedCategory.name} furniture
+                </h4>
+                <span className="text-sm text-gray-500">
+                  {selectedCategory.furniture.length} item
+                  {selectedCategory.furniture.length > 1 ? "s" : ""}
+                </span>
+              </header>
+              {/* Furniture */}
+              <section className="grow overflow-auto">
+                <div className="grid grid-cols-2 gap-3 md:p-3 p-2">
+                  {selectedCategory.furniture.map((furniture) => {
+                    const imageUrl =
+                      furniture?.previewImage ||
+                      getDefaultFurnitureInfo(furniture.type).imagePreview;
+                    return (
+                      <AnimatePresence key={furniture.id} mode="wait">
+                        <motion.button
+                          type="button"
+                          key={furniture.id}
+                          initial={{ y: 10, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          exit={{ y: -10, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className={cn(
+                            "relative rounded cursor-pointer h-42 w-full flex flex-col border-gray-300 gap-2 border hover:border-primary-600 overflow-hidden p-1 hover:ring-4 ring-primary-600"
+                          )}
+                          onClick={() => {
+                            handleAddFurnitureToScene(furniture);
+                          }}
+                        >
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <InfoIcon className="absolute size-3 top-2 right-2 text-gray-600 opacity-50" />
+                            </TooltipTrigger>
+                            <TooltipContent className="space-y-0.5 text-xs text-gray-500 max-w-40">
+                              <p className="font-semibold">{furniture.name}</p>
+                              <hr />
+                              <p>{furniture.description}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          {/* Image */}
+                          <div className="relative flex grow overflow-hidden bg-gray-100 rounded-sm p-1">
+                            {imageUrl && (
+                              <Image
+                                alt={furniture.name}
+                                src={imageUrl}
+                                fill={true}
+                                className="object-contain m-auto"
+                                placeholder="blur"
+                                blurDataURL="/images/placeholder.webp"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                              />
+                            )}
+                          </div>
+                          {/* Name */}
+                          <span className="text-xs font-medium h-8 flex items-center justify-center text-center line-clamp-2">
+                            {furniture.name}
+                          </span>
+                        </motion.button>
+                      </AnimatePresence>
+                    );
+                  })}
+                </div>
+              </section>
+            </section>
+          )}
+        </motion.div>
+      )}
     </aside>
   );
 };

@@ -1,35 +1,32 @@
-name: Deploy to GitHub Pages
+name: Deploy Next.js Production
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
-  build-and-deploy:
+  build:
+    name: Build and Deploy
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: 20
           cache: "pnpm"
+
+      - name: Install pnpm
+        run: npm install -g pnpm
 
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build application
+      - name: Build Next.js app
         run: pnpm build
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
@@ -39,13 +36,3 @@ jobs:
           NEXT_PUBLIC_R2_BUCKET_NAME: ${{ secrets.NEXT_PUBLIC_R2_BUCKET_NAME }}
           NEXT_PUBLIC_R2_ACCESS_KEY: ${{ secrets.NEXT_PUBLIC_R2_ACCESS_KEY }}
           NEXT_PUBLIC_R2_SECRET_KEY: ${{ secrets.NEXT_PUBLIC_R2_SECRET_KEY }}
-
-      - name: Static HTML export with Next.js
-        run: pnpm export
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        if: github.ref == 'refs/heads/main'
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./out
