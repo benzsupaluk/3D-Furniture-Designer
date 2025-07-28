@@ -17,15 +17,15 @@ A modern, interactive 3D space base interior design tool built with Next.js and 
   - Add furniture dynamically from a selectable list
   - Label each item with its name using `Text`
 
-- 🛠️ **Furniture Editing Tools**
+- **Furniture Editing Tools**
   - Drag, rotate, and scale furniture items in real-time
   - Prevent overlapping with **collision detection**
 
-- 🎥 **Camera Controls**
+- **Camera Controls**
   - Top View, Side View, Front View, and Orbit View preset buttons
   - Optional free orbit navigation using `OrbitControls`
 
-- 📸 **Screenshot & AI Styling**
+- **Screenshot & AI Styling**
   - Capture current scene view
   - Send screenshot to **Spacely AI** for styled image generation
   - Preview styled result in-app
@@ -95,16 +95,16 @@ A modern, interactive 3D space base interior design tool built with Next.js and 
 5. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-3d-room-simulator/
+3D-Furniture-Designer/
 ├── public/
-│   ├── models/          # 3D furniture models (GLTF/GLB)
-│   │   ├── blackSofa/   # Furniture model directories
+│   ├── models/          # 3D furniture models (GLTF)
+│   │   ├── blackSofa/   # Furniture model directories including preview.webp, model.gltf, etc.
 │   │   ├── chineseSofa/
 │   │   ├── coffeeTable/
-│   │   └── ...          # Additional furniture models
+│   │   └── ...
 │   ├── images/
 │   │   └── textures/    # Space base textures
 │   └── ...
@@ -124,7 +124,7 @@ A modern, interactive 3D space base interior design tool built with Next.js and 
 
 ## Usage
 
-### Basic Navigation
+### Basic Navigation in Canvas Scene
 - **Mouse/Touch**: Rotate camera view
 - **Pinch**: Zoom in/out
 - **Drag**: Pan around the space
@@ -156,8 +156,8 @@ This project is deployed on Vercel for optimal performance and scalability.
 
 ### API Integration
 The application integrates with Spacely AI API for image generation:
-- Screenshots are captured using Three.js renderer
-- Images are sent to the API for styled version generation
+- Capture room space base with current camera angle
+- Captured image is sent to the API for styled version generation
 - Results are displayed in a preview panel
 
 ## Internal API
